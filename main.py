@@ -1,33 +1,58 @@
 #!/usr/bin/env python3
-#coding:utf-8
-from __future__ import print_function
-import socket
+# coding:utf-8
+from flask import Flask, jsonify, request, Response, abort
+from sqlalchemy import Column, Integer, String, create_engine, Table, MetaData
+from sqlalchemy.ext.declarative import declarative_base
+from db import db
+import time
 
-HOST, PORT = '', 8080
+# 创建对象的基类:
+Base = declarative_base()
+# 定义User对象:
 
 
-def main():
-    listen_Sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    listen_Sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    listen_Sock.bind((HOST, PORT))
-    listen_Sock.listen(1)
-    print('LuyWeb listen on port %s ...' % PORT)
-    while True:
-        client_con, client_addr = listen_Sock.accept()
-        request = client_con.recv(1024)
-        print(client_addr, 'connected')
-        http_response = """\
-HTTP/1.1 200 OK
-Content-Type:text/html
-\r\n
+class User(Base):
+    # 表的名字:
+    __tablename__ = 'user'
 
-Hello, World!
-"""
-        # sendall() 需要字节型字符串，因此http_response 需要切换字符
-        print('returning:',http_response)
-        client_con.sendall(http_response.encode(encoding='utf_8'))
-        client_con.close()
+    # 表的结构:
+    id = Column(String(20), primary_key=True)
+    name = Column(String(20))
+
+
+app = Flask(__name__)
+DBInstance = db()
+cache = []
+
+
+@app.route("/exercise", methods=['POST'])
+def add():
+    content = request.form.get('content', None)
+    if not content:
+        abort(400)
+
+    now = str(time.time())
+
+    new_user = User(id=now, name='Bob')
+    DBInstance.insert(new_user)
+    print(content)
+    return Response()
+
+
+@app.route('/data')
+def data():
+    if len(cache) <= 0:
+        user = DBInstance.fetch(User)
+        for one in user:
+            cache.append(one.name)
+
+    return jsonify(cache)
+
+
+@app.route("/")
+def hello():
+    return jsonify(msg='hello world')
 
 
 if __name__ == '__main__':
-    main()
+    app.run(host='127.0.0.1', port=8080, debug=True)
