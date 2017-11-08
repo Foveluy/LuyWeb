@@ -15,7 +15,7 @@ if __name__ == '__main__':
     msg = b'fuck' +b'\n'
     msgLength = len(msg)
 
-    sock.connect(('0.0.0.0', 5000))
+    sock.connect(('0.0.0.0', 8080))
     sock.sendall(msg)
     nrecv = 0
     while nrecv < msgLength:
