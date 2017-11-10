@@ -6,16 +6,17 @@ from db import db
 import time
 from socket import *
 
+
 # 创建对象的基类:
 Base = declarative_base()
 # 定义User对象:
 
 sock = socket(AF_INET, SOCK_STREAM)
 
+
 class User(Base):
     # 表的名字:
     __tablename__ = 'user'
-
     # 表的结构:
     id = Column(String(20), primary_key=True)
     name = Column(String(20))
@@ -41,4 +42,4 @@ async def test(request):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080,debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)
