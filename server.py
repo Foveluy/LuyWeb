@@ -7,7 +7,7 @@ class LuyProtocol(asyncio.Protocol):
         self.parser = None
         self.header = {}
         self.url = None
-        print('init:', placeholder)
+        #print('init:', placeholder)
 
     def connection_made(self, transport):
         self.transport = transport
@@ -24,7 +24,8 @@ class LuyProtocol(asyncio.Protocol):
         except HttpParserError as e:
             print('出错', e)
         finally:
-            print('进入回调')
+            pass
+            #print('进入回调')
 
     #------------------------------------------------------------------------
 
@@ -32,28 +33,35 @@ class LuyProtocol(asyncio.Protocol):
 
     #------------------------------------------------------------------------
     def on_message_begin(self):
-        print('on_message_begin')
+        #print('on_message_begin')
+        pass
 
     def on_url(self, url):
         if not self.url:
             self.url = url
         else:
             self.url += url
-        print(url)
 
     def on_header(self, name, value):
         self.header[name] = value
 
     def on_headers_complete(self):
-        print('on_headers_complete:\n')
-        print(self.header)
-        print('\n', self.parser.get_method())
+        pass
+        #print('on_headers_complete:\n')
+        #print(self.header)
+        #print('\n', self.parser.get_method())
 
     def on_body(self, body):
-        print('parsebody中....')
-        print(body)
-        print('parse 完毕')
+        pass
+        #print('parsebody中....')
+        #print(body)
+        #print('parse 完毕')
 
     def on_message_complete(self):
-        print('on_message_complete')
-        self.transport.write(b'{"b":"fuck"}')
+        #print('on_message_complete')
+        self.transport.write(b'''HTTP/1.1 200 OK
+
+'{'fuck':'shit'}'
+
+''')
+        self.transport.close()
