@@ -26,20 +26,53 @@ DBInstance = db()
 cache = []
 
 
-from sanic import Sanic
-from sanic.response import json
+def hello(text):
+    print('hello,', text)
 
-app = Sanic(__name__)
+    def decorator(func):
+        def wrapper(*args, **kw):
+            print('我在这里内嵌了一个牛逼东西')
+            return func(*args, **kw)
+
+        return wrapper
+    
+    return decorator
+
+def login(func):
+    print('登陆')
+
+    def decorator(*args, **kw):
+        return func(*args, **kw)
+    return decorator
 
 
-@app.route("/")
-async def test(request):
-    if len(cache) <= 0:
-        user = DBInstance.fetch(User)
-        for one in user:
-            cache.append(one.name)
-    return json(cache)
+# @hello('牛逼')
+# @login
+def world(name, ff):
+    print('world func:', name, ff)
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+# world('方正','牛逼')
+
+hello('牛逼')(world)('方正','牛逼')
+# newWorld = decorator(world)
+# newWorld('方正','牛逼')
+
+
+# from sanic import Sanic
+# from sanic.response import json
+
+# app = Sanic(__name__)
+
+
+# @app.route("/")
+# async def test(request):
+#     if len(cache) <= 0:
+#         user = DBInstance.fetch(User)
+#         for one in user:
+#             cache.append(one.name)
+#     return json(cache)
+
+
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=8080, debug=True)
