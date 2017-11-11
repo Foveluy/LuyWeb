@@ -1,4 +1,10 @@
 
+try:
+    from ujson import dumps as json_dumps
+except:
+    from json import dumps as json_dumps
+
+
 COMMON_STATUS_CODES = {
     200: b'OK',
     400: b'Bad Request',
@@ -93,7 +99,7 @@ class HTTPResponse():
         return parsed_header
 
     def drain(self, version=b'1.1', keep_alive=False, keep_alive_timeout=None):
-        
+
         timeout_header = b''
         if keep_alive and keep_alive_timeout is not None:
             timeout_header = b'Keep-Alive: %d\r\n' % keep_alive_timeout
@@ -101,11 +107,11 @@ class HTTPResponse():
         self.header['Content-Type'] = self.content_type
 
         header = self.parse_header()
-        
+
         statusText = COMMON_STATUS_CODES[self.status]
         if statusText is None:
             statusText = ALL_STATUS_CODES[self.status] or b'UNKNOWN RESPONSE'
-        
+
         return (b'HTTP/%b %d %b\r\n'
                 b'Connection: %b\r\n'
                 b'%b'
@@ -116,3 +122,37 @@ class HTTPResponse():
                     timeout_header,
                     header,
                     self.body.encode())
+
+
+def json(body, status=200, header=None, content_type="application/json", **kwargs):
+    '''
+    ujson is way more faster than json module, 
+    highly recommended the user to install it
+
+    :parma body: a dict to be convert 
+
+    :parma status: http code
+
+    :parma header: header is none if user do not specify
+
+    :parma **kwargs: user can use a key-value form : json(key=value,key2=value2)
+    '''
+
+    return HTTPResponse(body=json_dumps(body, **kwargs),
+                        content_type=content_type,
+                        status=status,
+                        header=header)
+
+
+def text(body, status=200, header=None, content_type="text/plain:charset=utf-8"):
+    return HTTPResponse(body=body,
+                        content_type=content_type,
+                        status=status,
+                        header=header)
+
+
+def html(body, status=200, header=None):
+    return HTTPResponse(body=body,
+                        content_type="text/html; charset=utf-8",
+                        status=status,
+                        header=header)

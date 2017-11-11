@@ -42,8 +42,8 @@ async def test(request):
 
 @app.route('/123')
 async def first(request):
-    return json('shit')
+    return json({'shit':'fuck'})
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, workers=2, debug=False)
+    app.run(host="0.0.0.0", port=8080, workers=1, debug=False)

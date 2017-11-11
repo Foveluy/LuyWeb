@@ -1,7 +1,10 @@
 
 import functools
-from luya.server import LuyProtocol, serve
 from inspect import isawaitable, stack, getmodulename
+from traceback import format_exc
+
+from luya.server import LuyProtocol, serve
+from luya.response import html as response_html
 
 
 class Luya:
@@ -18,10 +21,12 @@ class Luya:
             port=port
         )
 
-    # decorator, if user decorate their function with this method,
-    # it will fire when this class is INITed
+    # decorator
     def route(self, url):
-        print('registing :', url)
+        '''
+        if user decorate their function with this method,
+        it will fire when this class is INITed
+        '''
 
         def response(func):
             # todo to using dict directly is not good for reading
@@ -52,8 +57,12 @@ class Luya:
                 print('warnning:url %s for %s is not isawaitable' %
                       (request.url, handler))
         except Exception as e:
-            print('unable to perform the request middleware and router function', e)
-            response = 'unable to perform the request middleware and router function '
+            response = response_html(
+                '''<h3>unable to perform the request middleware and router function</h3>
+                    <p>{}</p>
+                    <p>{}</p>
+                '''.format(e, format_exc()))
+
         finally:
             pass
 

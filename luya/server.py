@@ -95,11 +95,9 @@ class LuyProtocol(asyncio.Protocol):
         the writing phase is very fast
         so may not have to use coroutine
         '''
-
         try:
             keep_alive = self.keep_alive
-            self.transport.write(HTTPResponse(
-                body=response).drain(keep_alive=keep_alive))
+            self.transport.write(response.drain(keep_alive=keep_alive))
             if keep_alive:
                 self.refresh()
             else:
@@ -124,6 +122,14 @@ class LuyProtocol(asyncio.Protocol):
 
 
 def serve(app, host=None, port=None):
+    '''
+    start a server with host & port
+
+    :parma app: Luya app,it is for protocol class use
+    :parma host: host ip ,example : 0.0.0.0
+    :parma port: hosting port (1-65536)
+    '''
+
     loop = uvloop.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.set_debug(False)
@@ -143,9 +149,20 @@ def serve(app, host=None, port=None):
         print('unable to run the server', e)
         return
 
-    print('Server listening at', *server_setting)
+    print('''
+                        ██╗     ██╗   ██╗██╗   ██╗ █████╗ 
+                        ██║     ██║   ██║╚██╗ ██╔╝██╔══██╗
+                        ██║     ██║   ██║ ╚████╔╝ ███████║
+                        ██║     ██║   ██║  ╚██╔╝  ██╔══██║
+                        ███████╗╚██████╔╝   ██║   ██║  ██║
+                        ╚══════╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
+            ╔═╗┌─┐┬ ┬┌─┐┬─┐┌─┐┌┬┐  ┌┐ ┬ ┬  ╔═╗┬ ┬┌─┐┌┐┌┌─┐╔═╗┌─┐┌┐┌┌─┐
+            ╠═╝│ ││││├┤ ├┬┘├┤  ││  ├┴┐└┬┘  ╔═╝├─┤├┤ ││││ ┬╠╣ ├─┤││││ ┬
+            ╩  └─┘└┴┘└─┘┴└─└─┘─┴┘  └─┘ ┴   ╚═╝┴ ┴└─┘┘└┘└─┘╚  ┴ ┴┘└┘└─┘
+    ''')
+    print('Luya listening at', *server_setting)
 
-    # run the
+    # run the the server
     luya_httpServer = loop.run_until_complete(coroutine)
     loop.run_forever()
 
