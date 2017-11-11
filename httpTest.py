@@ -7,17 +7,15 @@ app = Luya()
 
 
 @app.route('/')
-def helloWorld(request):
-    print('helloWorld')
-    return
-
-
-@app.route('/')
-def helloWorld(request):
-    print('helloWorld')
-    return
+async def helloWorld(request):
+    print(request.url)
+    return '''
+            <div>
+                <h1>
+                    hello, Zheng123123hello
+                </h1>
+            </div>'''
 
 
 if __name__ == '__main__':
-    pass
-    # app.run()
+    app.run()
