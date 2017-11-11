@@ -2,22 +2,13 @@ import asyncio
 from httptools import HttpRequestParser, HttpParserError
 import functools
 import uvloop
-import asyncio
 
-
-class request():
-
-    def __init__(self, url=None, header=None, version=None, method=None):
-        self.url = url
-        self.header = header
-        self.version = version
-        self.method = method
-
-        self.body = []
+from luya.request import request as request_class
+from luya.response import HTTPResponse
 
 
 class LuyProtocol(asyncio.Protocol):
-    def __init__(self, app, loop=None):
+    def __init__(self, app, loop=None, keep_alive=True):
         self.parser = None
         self.url = None
         self._request_handler_task = None
@@ -25,6 +16,7 @@ class LuyProtocol(asyncio.Protocol):
 
         self.header = {}
         self.app = app
+        self.keep_alive = keep_alive
 
     def connection_made(self, transport):
         self.transport = transport
@@ -32,7 +24,9 @@ class LuyProtocol(asyncio.Protocol):
             self.parser = HttpRequestParser(self)
 
     def connection_lost(self, exc):
+
         self.transport.close()
+        self.refresh()
         self.transport = None
 
     #-------------------------------------
@@ -65,7 +59,7 @@ class LuyProtocol(asyncio.Protocol):
             self.header[name.decode().casefold()] = value.decode()
 
     def on_headers_complete(self):
-        self.request = request(
+        self.request = request_class(
             url=self.url.decode(),
             header=self.header,
             version=self.parser.get_http_version(),
@@ -97,12 +91,36 @@ class LuyProtocol(asyncio.Protocol):
     #-------------------------------------
 
     def write_response(self, response):
-        string = ('''HTTP/1.1 200 OK\nContent-Length: %s\nConnection:keep-alive\n%s\n\n''' % (len(response),response)).encode()
-        self.transport.write(string)
-        
+        '''
+        the writing phase is very fast
+        so may not have to use coroutine
+        '''
+
+        try:
+            keep_alive = self.keep_alive
+            self.transport.write(HTTPResponse(
+                body=response).drain(keep_alive=keep_alive))
+            if keep_alive:
+                self.refresh()
+            else:
+                self.transport.close()
+        except AttributeError as e:
+            print('AttributeError????', e)
+            self.transport.close()
+        except RuntimeError as e:
+            print('RuntimeError????', e)
+            self.transport.close()
+        except Exception as e:
+            print('Exception????', e)
+            self.transport.close()
+
+    def refresh(self):
+        '''
+        refresh the server state
+        prepare for next incoming request
+        '''
         self.url = None
         self.header = {}
-        # self.transport.close()
 
 
 def serve(app, host=None, port=None):

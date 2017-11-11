@@ -1,6 +1,6 @@
 
 import functools
-from server import LuyProtocol, serve
+from luya.server import LuyProtocol, serve
 from inspect import isawaitable, stack, getmodulename
 
 
@@ -58,4 +58,7 @@ class Luya:
             pass
 
         # todo stream call_back
-        write_callback(response)
+        try:
+            write_callback(response)
+        except Exception as e:
+            print('write_callback fail', e)

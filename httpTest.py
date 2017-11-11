@@ -1,4 +1,4 @@
-from Luya import Luya
+from luya import Luya
 
 PRINT = 1
 
@@ -8,7 +8,6 @@ app = Luya()
 
 @app.route('/')
 async def helloWorld(request):
-    print(request.url)
     return '''
             <div>
                 <h1>
