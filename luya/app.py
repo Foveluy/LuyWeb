@@ -25,14 +25,19 @@ class Luya:
     def route(self, url):
         '''
         if user decorate their function with this method,
-        it will fire when this class is INITed
+        it will fire when a method is being decorated
         '''
 
+        if url in self.router:
+            print('\n\nuri for "{}" is exist,please using another uri for this method\n\n'.format(url))
+            return
         def response(func):
             # todo to using dict directly is not good for reading
             # has to encapsulate into a class
+            print('/')
             self.router[url] = func
 
+                
         return response
 
     async def request_handler(self, request, write_callback, stream_callback):

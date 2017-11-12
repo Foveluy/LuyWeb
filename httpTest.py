@@ -6,7 +6,6 @@ PRINT = 1
 
 app = Luya()
 
-
 @app.route('/')
 async def helloWorld(request):
     return response.html('''
@@ -16,6 +15,6 @@ async def helloWorld(request):
                 </h1>
             </div>''')
 
-
 if __name__ == '__main__':
-    app.run()
+    pass
+    # app.run()
