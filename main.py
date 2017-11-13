@@ -40,7 +40,7 @@ async def test(request):
             cache.append(one.name)
     return json(cache)
 
-@app.route('/123')
+@app.route('/123',methods=['POST'])
 async def first(request):
     return json({'shit':'fuck'})
 

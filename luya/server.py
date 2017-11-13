@@ -63,7 +63,7 @@ class LuyProtocol(asyncio.Protocol):
             url=self.url.decode(),
             header=self.header,
             version=self.parser.get_http_version(),
-            method=self.parser.get_method()
+            method=self.parser.get_method().decode()
         )
 
     def on_body(self, body):

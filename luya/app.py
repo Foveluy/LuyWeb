@@ -2,9 +2,11 @@
 import functools
 from inspect import isawaitable, stack, getmodulename
 from traceback import format_exc
+import logging
 
 from luya.server import LuyProtocol, serve
 from luya.response import html as response_html
+from luya.router import Router
 
 
 class Luya:
@@ -12,7 +14,7 @@ class Luya:
         '''init the LuyA instance'''
 
         self.loop = None
-        self.router = {}
+        self.router = Router()
 
     def run(self, host=None, port=None):
         serve(
@@ -22,22 +24,17 @@ class Luya:
         )
 
     # decorator
-    def route(self, url):
+    def route(self, url, methods=None):
         '''
         if user decorate their function with this method,
         it will fire when a method is being decorated
         '''
-
-        if url in self.router:
-            print('\n\nuri for "{}" is exist,please using another uri for this method\n\n'.format(url))
-            return
         def response(func):
             # todo to using dict directly is not good for reading
             # has to encapsulate into a class
-            print('/')
-            self.router[url] = func
+            self.router.set_url(url, func, methods)
 
-                
+
         return response
 
     async def request_handler(self, request, write_callback, stream_callback):
@@ -52,15 +49,15 @@ class Luya:
         :param stream_callback: for stream request,normally it is a download request
         '''
         try:
-            handler = self.router[request.url]
+            handler = self.router.get_mapped_handle(request)
 
             # users may define a non-awaitable function
             response = handler(request)
             if isawaitable(response):
                 response = await response
             else:
-                print('warnning:url %s for %s is not isawaitable' %
-                      (request.url, handler))
+                logging.warning('url %s for %s is not isawaitable' %
+                                (request.url, handler))
         except Exception as e:
             response = response_html(
                 '''<h3>unable to perform the request middleware and router function</h3>
