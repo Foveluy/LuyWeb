@@ -24,16 +24,17 @@ def login(func):
     return wrapper
 
 
-@app.route('/')
-@login
-async def helloWorld(request):
+@app.route('/<tag>')
+async def helloWorld(request, tag=None):
+
     return response.html('''
             <div>
                 <h1>
-                    hello, Zheng123123hello
+                    hello, {}
                 </h1>
-            </div>''')
+            </div>'''.format(tag))
 
 
 if __name__ == '__main__':
     app.run()
+    pass

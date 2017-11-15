@@ -40,9 +40,11 @@ async def test(request):
             cache.append(one.name)
     return json(cache)
 
-@app.route('/123',methods=['POST'])
-async def first(request):
-    return json({'shit':'fuck'})
+
+@app.route('/<tag:\d+>')
+async def first(request, tag=None):
+
+    return json({'shit': tag, 'number': 123})
 
 
 if __name__ == "__main__":

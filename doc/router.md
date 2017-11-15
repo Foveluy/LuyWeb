@@ -2,7 +2,7 @@ router模块
 ====
 
 router模块要做的事情就是帮助函数解析url，解析url包括：
-- /url/<id:name> 非传统
+- /url/<id> 非传统的k-v方式
 - /url/?name=***&id=xxx 传统
 - '/number/<integer_arg:int> url检查
 

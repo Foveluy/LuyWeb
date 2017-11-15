@@ -34,7 +34,6 @@ class Luya:
             # has to encapsulate into a class
             self.router.set_url(url, func, methods)
 
-
         return response
 
     async def request_handler(self, request, write_callback, stream_callback):
@@ -49,10 +48,11 @@ class Luya:
         :param stream_callback: for stream request,normally it is a download request
         '''
         try:
-            handler = self.router.get_mapped_handle(request)
+            handler, kw = self.router.get_mapped_handle(request)
 
+            print(kw)
             # users may define a non-awaitable function
-            response = handler(request)
+            response = handler(request,**kw)
             if isawaitable(response):
                 response = await response
             else:
