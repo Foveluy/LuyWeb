@@ -52,7 +52,13 @@ class Router():
             method_ary.append(('arg', parameters))
             self.mapping_dynamic[url_hasKey(real_url)] = dict(method_ary)
         else:
-            self.mapping_static[url] = dict(method_ary)
+            self.map_static( url, dict(method_ary))
+
+    def map_static(self, url, method_ary):
+        if url in self.mapping_static:
+            raise ValueError('request <{}> is exisit'.format(url))
+
+        self.mapping_static[url] = method_ary
 
     def get_mapped_handle(self, request):
         route = self.mapping_static.get(request.url, None)
@@ -69,7 +75,7 @@ class Router():
         # todo 没找到的情况
         route = self.mapping_dynamic[url_hasKey(request.url)]
         parameters = route.get('arg')
-        
+
         args = request.url.split('/')
         output = []
         for i in range(0, len(parameters)):

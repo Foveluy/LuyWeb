@@ -16,7 +16,7 @@ class TestRouter(unittest.TestCase):
         self.assertEqual(handler, self.noop)
 
     def test_multArg(self):
-    
+
         request = request_class(url='/1234/12323')
         router_instance = Router()
         router_instance.set_url('/<tag>/<tag2>', self.noop)
@@ -40,6 +40,21 @@ class TestRouter(unittest.TestCase):
         handler, kw = router_instance.get_mapped_handle(request)
         self.assertEqual(kw, None)
         self.assertEqual(handler, self.noop)
+
+    def test_static_duplicate_url(self):
+    
+        request = request_class(url='/1234')
+        request2 = request_class(url='/1234')
+        router_instance = Router()
+        router_instance.set_url('/1234', self.noop)
+
+        with self.assertRaises(ValueError):
+            router_instance.set_url('/1234', self.noop)
+
+
+
+
+
 
     def noop(self):
         pass
