@@ -16,7 +16,7 @@ class TestRouter(unittest.TestCase):
         self.assertEqual(handler, self.noop)
 
     def test_multArg(self):
-
+    
         request = request_class(url='/1234/12323')
         router_instance = Router()
         router_instance.set_url('/<tag>/<tag2>', self.noop)

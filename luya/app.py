@@ -50,7 +50,6 @@ class Luya:
         try:
             handler, kw = self.router.get_mapped_handle(request)
 
-            print(kw)
             # users may define a non-awaitable function
             response = handler(request,**kw)
             if isawaitable(response):

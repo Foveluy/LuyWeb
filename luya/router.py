@@ -58,31 +58,22 @@ class Router():
         route = self.mapping_static.get(request.url, None)
         out_put = None
         # if static route is not found
+
         if route is None:
             route, out_put = self._get(request)
+
         return route['func'], out_put
 
     def _get(self, request):
 
+        # todo 没找到的情况
         route = self.mapping_dynamic[url_hasKey(request.url)]
         parameters = route.get('arg')
-        arg = ''
-        args = []
-        last = len(request.url[1:]) - 1
-        for idx, char in enumerate(request.url[1:]):
-            if char != '/':
-                arg += char
-            else:
-                args.append(arg)
-                arg = ''
-
-            if idx == last:
-                args.append(arg)
-                arg = ''
-
+        
+        args = request.url.split('/')
         output = []
         for i in range(0, len(parameters)):
 
-            output.append((parameters[i], args[i]))
+            output.append((parameters[i], args[i + 1]))
 
         return route, dict(output)
