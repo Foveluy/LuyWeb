@@ -57,13 +57,19 @@ class Router():
         args = []
         last = len(request.url[1:]) - 1
         for idx, char in enumerate(request.url[1:]):
-            arg += char
-            if char == '/' or idx == last:
+            if char != '/':
+                arg += char
+            else:
+                args.append(arg)
+                arg = ''
+
+            if idx == last:
                 args.append(arg)
                 arg = ''
 
         output = []
         for i in range(0, len(parameters)):
+            
             output.append((parameters[i], args[i]))
-        
+
         return output
