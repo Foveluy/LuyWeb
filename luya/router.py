@@ -27,13 +27,10 @@ class Router():
             parse the parma from url
             '''
             pattern = match.group(1)
-            print(pattern)
             parameters.append(pattern)
             return ''
 
         real_url = re.sub(PATTERN, parse_parma, url)
-
-        method_ary.append(('arg', parameters))
 
         if methods is not None:
             for method in methods:
@@ -41,18 +38,25 @@ class Router():
         else:
             method_ary.append(('GET', True))
 
-        self.mapping_static[url_hasKey(real_url)] = dict(method_ary)
+        # check url if static or dynamic
+        if len(parameters) > 0:
+            method_ary.append(('arg', parameters))
+            self.mapping_dynamic[url_hasKey(real_url)] = dict(method_ary)
+        else:
+            self.mapping_static[url] = dict(method_ary)
 
     def get_mapped_handle(self, request):
-        static = self.mapping_static[url_hasKey(request.url)]
-
-        out_put = dict(self._get(request))
-        return static['func'], out_put
+        route = self.mapping_static.get(request.url, None)
+        out_put = None
+        # if static route is not found
+        if route is None:
+            route, out_put = self._get(request)
+        return route['func'], out_put
 
     def _get(self, request):
 
-        static = self.mapping_static[url_hasKey(request.url)]
-        parameters = static.get('arg')
+        route = self.mapping_dynamic[url_hasKey(request.url)]
+        parameters = route.get('arg')
         arg = ''
         args = []
         last = len(request.url[1:]) - 1
@@ -69,7 +73,7 @@ class Router():
 
         output = []
         for i in range(0, len(parameters)):
-            
+
             output.append((parameters[i], args[i]))
 
-        return output
+        return route, dict(output)

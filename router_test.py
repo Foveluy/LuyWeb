@@ -31,6 +31,16 @@ class TestRouter(unittest.TestCase):
         self.assertEqual(kw, {'tag': '1234', 'tag2': '12323', 'b4': '123'})
         self.assertEqual(handler, self.noop)
 
+    def test_static_url(self):
+
+        request = request_class(url='/1234')
+        router_instance = Router()
+        router_instance.set_url('/1234', self.noop)
+
+        handler, kw = router_instance.get_mapped_handle(request)
+        self.assertEqual(kw, None)
+        self.assertEqual(handler, self.noop)
+
     def noop(self):
         pass
 
