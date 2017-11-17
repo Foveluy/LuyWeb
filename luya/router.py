@@ -36,7 +36,14 @@ class Router():
             parse the parma from url
             '''
             pattern = match.group(1)
-            parameters.append(pattern)
+            if ':' in pattern:
+                splited = pattern.split(':')
+                pattern = splited[0]
+                Type = splited[1]
+                parameters.append((pattern, Type))
+            else:
+                parameters.append(pattern)
+
             return ''
 
         real_url = re.sub(PATTERN, parse_parma, url)
@@ -52,7 +59,7 @@ class Router():
             method_ary.append(('arg', parameters))
             self.mapping_dynamic[url_hasKey(real_url)] = dict(method_ary)
         else:
-            self.map_static( url, dict(method_ary))
+            self.map_static(url, dict(method_ary))
 
     def map_static(self, url, method_ary):
         if url in self.mapping_static:
@@ -79,7 +86,24 @@ class Router():
         args = request.url.split('/')
         output = []
         for i in range(0, len(parameters)):
+            if isinstance(parameters[i], tuple):
+                parma = parameters[i][0]
+                Type = parameters[i][1]
+                regex = REGEX_TYPES.get(Type, None)
 
-            output.append((parameters[i], args[i + 1]))
+                # regular type
+                if regex is not None:
+                    matching = re.compile(regex[1]).match(args[i + 1])
+                    if args[i + 1] == matching.group():
+                        output.append((parma, regex[0](args[i + 1])))
+                    else:
+                        #not found 404
+                        pass
+                else:
+                    # todo not regular one
+                    pass
+            else:
+                # if no type define ,goes here
+                output.append((parameters[i], args[i + 1]))
 
         return route, dict(output)

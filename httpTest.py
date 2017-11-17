@@ -24,7 +24,7 @@ def login(func):
     return wrapper
 
 
-@app.route('/<tag>')
+@app.route('/<tag:number>')
 async def helloWorld(request, tag=None):
 
     return response.html('''
