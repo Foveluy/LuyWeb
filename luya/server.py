@@ -2,6 +2,9 @@ import asyncio
 from httptools import HttpRequestParser, HttpParserError
 import functools
 import uvloop
+import logging
+import sys
+from traceback import format_exc
 
 from luya.request import request as request_class
 from luya.response import HTTPResponse
@@ -142,13 +145,27 @@ def serve(app, host=None, port=None):
 
     host, port = host or "127.0.0.1", port or 8000
     server_setting = (host, port)
+    _print_logo(*server_setting)  # Lol
 
     try:
         coroutine = loop.create_server(LuyaServer, *server_setting)
     except Exception as e:
-        print('unable to run the server', e)
+        logging.error('unable to run the server,{}'.format(format_exc()))
         return
 
+    # run the the server
+    luya_httpServer = loop.run_until_complete(coroutine)
+    loop.run_forever()
+
+    # wait for all connection drain and then close
+    luya_httpServer.close()
+    loop.run_until_complete(luya_httpServer.wait_closed())
+
+    loop.close()
+
+
+def _print_logo(*server_setting):
+    '''unuseful method dont call it!!!!!!!!!!'''
     print('''
                         ██╗     ██╗   ██╗██╗   ██╗ █████╗ 
                         ██║     ██║   ██║╚██╗ ██╔╝██╔══██╗
@@ -160,14 +177,4 @@ def serve(app, host=None, port=None):
             ╠═╝│ ││││├┤ ├┬┘├┤  ││  ├┴┐└┬┘  ╔═╝├─┤├┤ ││││ ┬╠╣ ├─┤││││ ┬
             ╩  └─┘└┴┘└─┘┴└─└─┘─┴┘  └─┘ ┴   ╚═╝┴ ┴└─┘┘└┘└─┘╚  ┴ ┴┘└┘└─┘
     ''')
-    print('Luya listening at', *server_setting)
-
-    # run the the server
-    luya_httpServer = loop.run_until_complete(coroutine)
-    loop.run_forever()
-
-    # wait for all connection drain and then close
-    luya_httpServer.close()
-    loop.run_until_complete(luya_httpServer.wait_closed())
-
-    loop.close()
+    print('\nLuya listening at ', *server_setting)

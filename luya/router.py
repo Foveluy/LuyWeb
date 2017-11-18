@@ -86,10 +86,13 @@ class Router():
     def map_static(self, url, method_ary):
         if url in self.mapping_static:
             raise ValueError('request <{}> is exisit'.format(url))
-
         self.mapping_static[url] = method_ary
 
     def get_mapped_handle(self, request):
+        '''
+            get a handler from url
+            :parma request: the request of one connection
+        '''
         route = self.mapping_static.get(request.url, None)
         out_put = {}
         # if static route is not found
@@ -100,6 +103,14 @@ class Router():
         return route['func'], out_put
 
     def _get(self, request):
+        
+        '''
+            this function is for parsing a dynamic url.
+            notice that using dynamic url is very slow.
+            we are not highly recommand to use a lot of dynamic urls in your project.
+
+            :parma request: the request of one connection
+        '''
 
         # todo 没找到的情况
         route = self.mapping_dynamic.get(url_hasKey(request.url), None)
@@ -153,6 +164,12 @@ class Router():
         for checking the every single part of the url
 
         example /bp/<key:type> checking the static 'bp'
+
+        :parma regex: it is a regex object 
+        :parma args: array, splited from url
+        :parma idx: index of this dynamic argument,
+                    example  /bp/<key:type> ,its index is 1. couting from 0.
+
         '''
         for index, value in enumerate(args):
             if value in self.mapping_partial:
