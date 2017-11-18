@@ -16,6 +16,8 @@ class Luya:
 
         self.loop = None
         self.router = Router()
+        self.blueprint_name_bundle = {}
+        self.blueprint_in_order = []
 
     def run(self, host=None, port=None):
         serve(
@@ -24,7 +26,20 @@ class Luya:
             port=port
         )
 
-    # decorator
+    def register_blueprint(self, blueprint):
+        '''
+        register a blueprint
+        '''
+
+        if blueprint.name in self.blueprint_name_bundle:
+            raise KeyError(
+                'the name {} for blueprint has already registered, please choose another name instead')
+        else:
+            self.blueprint_in_order.append(blueprint)
+            blueprint.register(self)
+
+
+            # decorator
     def route(self, url, methods=None):
         '''
         if user decorate their function with this method,
@@ -59,14 +74,15 @@ class Luya:
                 logging.warning('url %s for %s is not isawaitable' %
                                 (request.url, handler))
         except LuyAException as e:
-            response = response_html('<h1>{}</h1>{}'.format(e,format_exc()), e.status_code)
+            response = response_html(
+                '<h1>{}</h1>{}'.format(e, format_exc()), e.status_code)
 
         except Exception as e:
             response = response_html(
                 '''<h3>unable to perform the request middleware and router function</h3>
                     <p>{}</p>
                     <p>{}</p>
-                '''.format(e, format_exc()))
+                '''.format(e, format_exc()),status=500)
 
         finally:
             pass

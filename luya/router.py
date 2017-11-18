@@ -24,6 +24,7 @@ class Router():
     def __init__(self):
         self.url = None
         self.mapping_static = {}
+        self.mapping_partial = {}
         self.mapping_dynamic = {}
 
     def set_url(self, url, func, methods=None):
@@ -37,17 +38,31 @@ class Router():
             parse the parma from url
             '''
             pattern = match.group(1)
+
+            # get the position of parmaeters
+            splited = url.split('/')
+            idx = 0
+            for index, value in enumerate(splited):
+                if value == match.group():
+                    idx = index
+
             if ':' in pattern:
                 splited = pattern.split(':')
                 pattern = splited[0]
                 Type = splited[1]
-                parameters.append((pattern, Type))
+                parameters.append((pattern, Type, idx))
             else:
-                parameters.append(pattern)
+                parameters.append({'pattern': pattern, 'index': idx})
 
             return ''
 
         real_url = re.sub(PATTERN, parse_parma, url)
+
+        static_part_splited = real_url.split('/')
+
+        for value in static_part_splited:
+            if value != '':
+                self.mapping_partial[value] = True
 
         if methods is not None:
             for method in methods:
@@ -58,9 +73,15 @@ class Router():
         # check url if static or dynamic
         if len(parameters) > 0:
             method_ary.append(('arg', parameters))
-            self.mapping_dynamic[url_hasKey(real_url)] = dict(method_ary)
+            self.map_dynamic(url_hasKey(real_url), dict(method_ary))
         else:
             self.map_static(url, dict(method_ary))
+
+    def map_dynamic(self, key, method_ary):
+        if key not in self.mapping_dynamic:
+            self.mapping_dynamic[key] = []
+
+        self.mapping_dynamic[key].append(method_ary)
 
     def map_static(self, url, method_ary):
         if url in self.mapping_static:
@@ -70,7 +91,7 @@ class Router():
 
     def get_mapped_handle(self, request):
         route = self.mapping_static.get(request.url, None)
-        out_put = None
+        out_put = {}
         # if static route is not found
 
         if route is None:
@@ -82,32 +103,63 @@ class Router():
 
         # todo 没找到的情况
         route = self.mapping_dynamic.get(url_hasKey(request.url), None)
-        parameters = route.get('arg')
+        if route is None:
+            raise LuyAException('Page Not Fount 404', 404)
 
         args = request.url.split('/')
-        output = []
-        for i in range(0, len(parameters)):
-            if isinstance(parameters[i], tuple):
-                parma = parameters[i][0]
-                Type = parameters[i][1]
-                regex = REGEX_TYPES.get(Type, None)
 
-                # regular type
-                if regex is not None:
-                    matching = re.compile(regex[1]).match(args[i + 1])
-                    if matching is None:
-                        raise LuyAException('Page Not Fount 404', 404)
+        for _route in route:
+            parameters = _route.get('arg')
+            output = []
 
-                    if args[i + 1] == matching.group():
-                        output.append((parma, regex[0](args[i + 1])))
+            # check how many args
+            for i in range(0, len(parameters)):
+
+                if isinstance(parameters[i], tuple):
+                    parma = parameters[i][0]
+                    Type = parameters[i][1]
+                    idx = parameters[i][2]
+                    regex = REGEX_TYPES.get(Type, None)
+
+                    # regular type
+                    if regex is not None:
+                        matching, index = self.check_matching(
+                            re.compile(regex[1]), args, idx)
+                        if matching is None:
+                            continue
+
+                        if args[index] == matching.group():
+                            output.append((parma, regex[0](args[index])))
+                        else:
+                            # not found 404
+                            raise LuyAException('Page Not Fount 404', 404)
                     else:
-                        # not found 404
-                        raise LuyAException('Page Not Fount 404', 404)
+                        # todo not regular one
+                        raise LuyAException('Internal Error', 500)
                 else:
-                    # todo not regular one
-                    raise LuyAException('internal Error', 500)
-            else:
-                # if no type define ,goes here
-                output.append((parameters[i], args[i + 1]))
+                    # if no type define, goes here
+                    pattern = parameters[i].get('pattern')
+                    index = parameters[i].get('index')
+                    output.append((pattern, args[index]))
 
-        return route, dict(output)
+            # check if found
+            if len(output) > 0:
+                return _route, dict(output)
+
+        raise LuyAException('Page Not Fount 404', 404)
+
+    def check_matching(self, regex, args, idx):
+        '''
+        for checking the every single part of the url
+
+        example /bp/<key:type> checking the static 'bp'
+        '''
+        for index, value in enumerate(args):
+            if value in self.mapping_partial:
+                continue
+
+            if idx == index:
+                match = regex.match(value)
+                if match is not None:
+                    return match, index
+        raise LuyAException('Page Not Fount 404', 404)

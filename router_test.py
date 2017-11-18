@@ -1,6 +1,8 @@
 from luya.router import Router
 from luya.request import request as request_class
+from luya.exception import LuyAException
 import unittest
+
 
 
 class TestRouter(unittest.TestCase):
@@ -38,7 +40,7 @@ class TestRouter(unittest.TestCase):
         router_instance.set_url('/1234', self.noop)
 
         handler, kw = router_instance.get_mapped_handle(request)
-        self.assertEqual(kw, None)
+        self.assertEqual(kw, {})
         self.assertEqual(handler, self.noop)
 
     def test_static_duplicate_url(self):
@@ -63,9 +65,10 @@ class TestRouter(unittest.TestCase):
         self.assertEqual(handler, self.noop)
 
         request2 = request_class(url='/12hh3-22')
-        handler, kw = router_instance.get_mapped_handle(request2)
-        self.assertEqual(kw, {})
-        self.assertEqual(handler, self.noop)
+        
+        with self.assertRaises(LuyAException):
+            handler, kw = router_instance.get_mapped_handle(request2)
+
 
     def noop(self):
         pass

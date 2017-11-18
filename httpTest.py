@@ -2,11 +2,25 @@
 
 from luya import Luya
 from luya import response
+from luya import blueprint
 
 PRINT = 1
 
 
 app = Luya()
+
+bp = blueprint.Blueprint('zhengfang',prefix_url='/bp')
+@bp.route('/<tag:number>')
+async def helloWorld(request, tag=None):
+
+    return response.html('''
+            <div>
+                <h1>
+                    hello, {}
+                </h1>
+            </div>'''.format(tag))
+
+
 
 
 def login(func):
@@ -24,7 +38,7 @@ def login(func):
     return wrapper
 
 
-@app.route('/<tag:number>')
+@app.route('/<tag>')
 async def helloWorld(request, tag=None):
 
     return response.html('''
@@ -34,7 +48,19 @@ async def helloWorld(request, tag=None):
                 </h1>
             </div>'''.format(tag))
 
+@app.route('/index')
+async def helloWorld(request):
+
+    return response.html('''
+            <div>
+                <h1>
+                    hello,index
+                </h1>
+            </div>''')
+
+
 
 if __name__ == '__main__':
+    app.register_blueprint(bp)
     app.run()
     pass

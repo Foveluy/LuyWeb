@@ -6,3 +6,4 @@ class LuyAException(Exception):
         super().__init__(message)
         if status_code is not None:
             self.status_code = status_code
+
