@@ -1,6 +1,7 @@
 import logging
 import re
 
+from luya.exception import LuyAException
 from collections.abc import Iterable
 
 REGEX_TYPES = {
@@ -80,7 +81,7 @@ class Router():
     def _get(self, request):
 
         # todo 没找到的情况
-        route = self.mapping_dynamic[url_hasKey(request.url)]
+        route = self.mapping_dynamic.get(url_hasKey(request.url), None)
         parameters = route.get('arg')
 
         args = request.url.split('/')
@@ -94,14 +95,17 @@ class Router():
                 # regular type
                 if regex is not None:
                     matching = re.compile(regex[1]).match(args[i + 1])
+                    if matching is None:
+                        raise LuyAException('Page Not Fount 404', 404)
+
                     if args[i + 1] == matching.group():
                         output.append((parma, regex[0](args[i + 1])))
                     else:
-                        #not found 404
-                        pass
+                        # not found 404
+                        raise LuyAException('Page Not Fount 404', 404)
                 else:
                     # todo not regular one
-                    pass
+                    raise LuyAException('internal Error', 500)
             else:
                 # if no type define ,goes here
                 output.append((parameters[i], args[i + 1]))

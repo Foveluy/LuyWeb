@@ -7,6 +7,7 @@ import logging
 from luya.server import LuyProtocol, serve
 from luya.response import html as response_html
 from luya.router import Router
+from luya.exception import LuyAException
 
 
 class Luya:
@@ -51,12 +52,15 @@ class Luya:
             handler, kw = self.router.get_mapped_handle(request)
 
             # users may define a non-awaitable function
-            response = handler(request,**kw)
+            response = handler(request, **kw)
             if isawaitable(response):
                 response = await response
             else:
                 logging.warning('url %s for %s is not isawaitable' %
                                 (request.url, handler))
+        except LuyAException as e:
+            response = response_html('<h1>{}</h1>{}'.format(e,format_exc()), e.status_code)
+
         except Exception as e:
             response = response_html(
                 '''<h3>unable to perform the request middleware and router function</h3>
