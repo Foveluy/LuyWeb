@@ -15,7 +15,11 @@ todolist
 todolist2
 =====
 
-- []文件下载
+- [ ]蓝图的单元测试
+- [ ]错误处理的单元测试 
+- [ ]cookie模块
+- [ ]url?name=xxx ,解析模块 
+- [ ]文件下载
 
 
 things

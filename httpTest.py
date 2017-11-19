@@ -38,25 +38,20 @@ def login(func):
     return wrapper
 
 
-@app.route('/<tag>')
-async def helloWorld(request, tag=None):
+# @app.route('/<tag>')
+# async def helloWorld(request, tag=None):
 
-    return response.html('''
-            <div>
-                <h1>
-                    hello, {}
-                </h1>
-            </div>'''.format(tag))
+#     return response.html('''
+#             <div>
+#                 <h1>
+#                     hello, {}
+#                 </h1>
+#             </div>'''.format(tag))
 
-@app.route('/index')
+@app.route('/')
 async def helloWorld(request):
 
-    return response.html('''
-            <div>
-                <h1>
-                    hello,index
-                </h1>
-            </div>''')
+    return response.text('hello,world')
 
 
 
