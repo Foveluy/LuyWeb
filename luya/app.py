@@ -142,6 +142,10 @@ class Luya:
                 response = handler(request, exception=e)
                 if isawaitable(response):
                     response = await response
+                
+                #setting a status code for return
+                if response.status == 200:
+                    response.status = e.status_code
                 else:
                     logging.warning('url %s for %s is not isawaitable' %
                                     (request.url, handler))

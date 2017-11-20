@@ -1,4 +1,12 @@
 
+def add_status_code(code):
+    def add(cls):
+        cls.status_code = code
+        return cls
+
+    return add
+
+
 
 class LuyAException(Exception):
 
@@ -7,3 +15,8 @@ class LuyAException(Exception):
         if status_code is not None:
             self.status_code = status_code
 
+
+
+@add_status_code(404)
+class NOT_FOUND(LuyAException):
+    pass
