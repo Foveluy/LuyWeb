@@ -73,6 +73,7 @@ class Luya:
     def exception(self, exception):
 
         def decorator(func):
+            print('yes')
             status_code = exception.status_code
             self.exception_handler[status_code] = func
 
@@ -139,19 +140,22 @@ class Luya:
             try:
                 handler = self.exception_handler.get(e.status_code, None)
 
-                response = handler(request, exception=e)
-                if isawaitable(response):
-                    response = await response
-                
-                #setting a status code for return
-                if response.status == 200:
-                    response.status = e.status_code
+                if handler is not None:
+                    response = handler(request, exception=e)
+                    if isawaitable(response):
+                        response = await response
+
+                    # setting a status code for return
+                    if response.status == 200:
+                        response.status = e.status_code
                 else:
-                    logging.warning('url %s for %s is not isawaitable' %
-                                    (request.url, handler))
+                    response = response_html(
+                        '<h3>{}<h3>'.format(e),status=e.status_code
+                    )
+
             except Exception as err:
                 response = response_html(
-                    '<h1>{}</h1>{}'.format(e, format_exc()), status=500)
+                    '<h1>{}</h1>{}'.format(err, format_exc()), status=500)
 
         except Exception as e:
             response = response_html(
@@ -165,7 +169,7 @@ class Luya:
             # handling response middleware
             #----------------
             try:
-                response = await self.run_response_middleware(request,response)
+                response = await self.run_response_middleware(request, response)
             except Exception as e:
                 response = response_html(
                     '''<h3>unable to perform the request middleware and router function</h3>

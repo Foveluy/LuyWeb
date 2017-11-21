@@ -7,7 +7,6 @@ def add_status_code(code):
     return add
 
 
-
 class LuyAException(Exception):
 
     def __init__(self, message, status_code=None):
@@ -16,7 +15,6 @@ class LuyAException(Exception):
             self.status_code = status_code
 
 
-
 @add_status_code(404)
 class NOT_FOUND(LuyAException):
-    pass
+        pass

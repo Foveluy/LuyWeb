@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+import aiohttp
+
 
 from luya import Luya
 from luya import response
 from luya import blueprint
-from luya.exception import LuyAException
+from luya.exception import NOT_FOUND
+
 
 PRINT = 1
 
@@ -24,35 +27,23 @@ async def helloWorld(request, tag=None):
             </div>'''.format(tag))
 
 
-def login(func):
-    async def wrapper(*arg, **kw):
-        if 3 > 5:
-            return func(*arg, **kw)
-        else:
-            return response.html('''
+@app.route('/')
+async def helloWorld(request):
+    async with aiohttp.ClientSession() as session:
+        async with session.get('http://www.boohee.com/food/search?keyword=%E8%8B%B9%E6%9E%9C') as res:
+            Html = await res.text(encoding='utf-8')
+            print(Html)
+    return response.html('''
             <div>
                 <h1>
-                    please login
+                    hello, {}
                 </h1>
-            </div>''')
-
-    return wrapper
+            </div>'''.format(Html))
 
 
-# @app.route('/<tag>')
-# async def helloWorld(request, tag=None):
-
-#     return response.html('''
-#             <div>
-#                 <h1>
-#                     hello, {}
-#                 </h1>
-#             </div>'''.format(tag))
-
-
-@app.exception(LuyAException('page not found', status_code=404))
-async def helloWorld(request, exception):
-    return response.text('page not found')
+# @app.exception(NOT_FOUND)
+# async def helloWorld(request, exception):
+#     return response.text('page not found')
 
 
 if __name__ == '__main__':
