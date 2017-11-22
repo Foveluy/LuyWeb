@@ -4,6 +4,8 @@ import functools
 import uvloop
 import logging
 import sys
+import os
+
 from traceback import format_exc
 from multiprocessing import Process
 
@@ -132,7 +134,7 @@ class LuyProtocol(asyncio.Protocol):
         self.header = {}
 
 
-def serve(app, host=None, port=None, sock=None):
+def serve(app, host=None, port=None, sock=None, workers=1):
     '''
     start a server with host & port
 
@@ -151,13 +153,17 @@ def serve(app, host=None, port=None, sock=None):
         loop=loop
     )
 
-    host, port = host or "127.0.0.1", port or 8000
-    server_setting = (host, port)
-    _print_logo(*server_setting)  # Lol
-
     try:
         coroutine = loop.create_server(
-            LuyaServer, sock=sock, reuse_address=True, reuse_port=True)
+            LuyaServer,
+            host=host,
+            port=port,
+            sock=sock,
+            reuse_address=True,
+            reuse_port=True)
+
+        _print_workers(host, port, '[pid:{}]'.format(os.getpid()))
+
     except Exception as e:
         logging.error('unable to run the server,{}'.format(format_exc()))
         return
@@ -173,27 +179,32 @@ def serve(app, host=None, port=None, sock=None):
     loop.close()
 
 
-def multiple_serve(app):
+def multiple_serve(app, server_args):
     processes = []
-    d = {'host': '127.0.0.1', 'port': 8000}
+    host = server_args['host']
+    port = server_args['port']
 
     sock = socket()
     sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    sock.bind((d['host'], d['port']))
+    sock.bind((host, port))
     sock.set_inheritable(True)
+    server_args['sock'] = sock
+    server_args['host'] = None
+    server_args['port'] = None
 
-    d['sock'] = sock
     serves = functools.partial(
         serve,
         app
     )
 
-    for i in range(0, 2):
-        process = Process(target=serves, kwargs=d)
+    for i in range(0, server_args['workers']):
+        process = Process(target=serves, kwargs=server_args)
         process.daemon = True
         process.start()
         processes.append(process)
+        _print_workers(host, port, '[pid:{}]'.format(process.pid))
 
+    # wait for every process complete
     for process in processes:
         process.join()
 
@@ -201,7 +212,7 @@ def multiple_serve(app):
         process.terminate()
 
 
-def _print_logo(*server_setting):
+def _print_logo():
     '''unuseful method dont call it!!!!!!!!!!'''
     print('''
                         ██╗     ██╗   ██╗██╗   ██╗ █████╗ 
@@ -214,4 +225,7 @@ def _print_logo(*server_setting):
             ╠═╝│ ││││├┤ ├┬┘├┤  ││  ├┴┐└┬┘  ╔═╝├─┤├┤ ││││ ┬╠╣ ├─┤││││ ┬
             ╩  └─┘└┴┘└─┘┴└─└─┘─┴┘  └─┘ ┴   ╚═╝┴ ┴└─┘┘└┘└─┘╚  ┴ ┴┘└┘└─┘
     ''')
-    print('\nLuya listening at ', *server_setting)
+
+
+def _print_workers(*setting):
+    print('Luya process listening at ', *setting)
