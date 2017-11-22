@@ -17,4 +17,9 @@ class LuyAException(Exception):
 
 @add_status_code(404)
 class NOT_FOUND(LuyAException):
-        pass
+    pass
+
+
+def abort(status_code, message=None):
+    exception = LuyAException(None, status_code=status_code)
+    raise exception

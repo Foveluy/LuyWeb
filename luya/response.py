@@ -99,6 +99,9 @@ class HTTPResponse():
         return parsed_header
 
     def drain(self, version=b'1.1', keep_alive=False, keep_alive_timeout=None):
+        '''
+        flush a response to whatever you wanted
+        '''
 
         timeout_header = b''
         if keep_alive and keep_alive_timeout is not None:

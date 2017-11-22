@@ -5,9 +5,17 @@ import uvloop
 import logging
 import sys
 from traceback import format_exc
+from multiprocessing import Process
 
 from luya.request import request as request_class
 from luya.response import HTTPResponse
+
+
+from socket import (
+    socket,
+    SOL_SOCKET,
+    SO_REUSEADDR,
+)
 
 
 class LuyProtocol(asyncio.Protocol):
@@ -124,7 +132,7 @@ class LuyProtocol(asyncio.Protocol):
         self.header = {}
 
 
-def serve(app, host=None, port=None):
+def serve(app, host=None, port=None, sock=None):
     '''
     start a server with host & port
 
@@ -148,7 +156,8 @@ def serve(app, host=None, port=None):
     _print_logo(*server_setting)  # Lol
 
     try:
-        coroutine = loop.create_server(LuyaServer, *server_setting)
+        coroutine = loop.create_server(
+            LuyaServer, sock=sock, reuse_address=True, reuse_port=True)
     except Exception as e:
         logging.error('unable to run the server,{}'.format(format_exc()))
         return
@@ -162,6 +171,34 @@ def serve(app, host=None, port=None):
     loop.run_until_complete(luya_httpServer.wait_closed())
 
     loop.close()
+
+
+def multiple_serve(app):
+    processes = []
+    d = {'host': '127.0.0.1', 'port': 8000}
+
+    sock = socket()
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    sock.bind((d['host'], d['port']))
+    sock.set_inheritable(True)
+
+    d['sock'] = sock
+    serves = functools.partial(
+        serve,
+        app
+    )
+
+    for i in range(0, 2):
+        process = Process(target=serves, kwargs=d)
+        process.daemon = True
+        process.start()
+        processes.append(process)
+
+    for process in processes:
+        process.join()
+
+    for process in processes:
+        process.terminate()
 
 
 def _print_logo(*server_setting):

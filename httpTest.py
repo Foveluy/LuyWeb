@@ -29,16 +29,16 @@ async def helloWorld(request, tag=None):
 
 @app.route('/')
 async def helloWorld(request):
-    async with aiohttp.ClientSession() as session:
-        async with session.get('http://www.boohee.com/food/search?keyword=%E8%8B%B9%E6%9E%9C') as res:
-            Html = await res.text(encoding='utf-8')
-            print(Html)
+    # async with aiohttp.ClientSession() as session:
+    #     async with session.get('http://www.boohee.com/food/search?keyword=%E8%8B%B9%E6%9E%9C') as res:
+    #         Html = await res.text(encoding='utf-8')
+    #         print(Html)
     return response.html('''
             <div>
                 <h1>
                     hello, {}
                 </h1>
-            </div>'''.format(Html))
+            </div>'''.format('http'))
 
 
 # @app.exception(NOT_FOUND)

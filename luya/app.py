@@ -4,7 +4,7 @@ from inspect import isawaitable, stack, getmodulename
 from traceback import format_exc
 import logging
 
-from luya.server import LuyProtocol, serve
+from luya.server import LuyProtocol, serve, multiple_serve
 from luya.response import html as response_html
 from luya.response import HTTPResponse
 from luya.router import Router
@@ -24,11 +24,12 @@ class Luya:
         self.exception_handler = {}
 
     def run(self, host=None, port=None):
-        serve(
-            self,
-            host=host,
-            port=port
-        )
+        multiple_serve(self)
+        # serve(
+        #     self,
+        #     host=host,
+        #     port=port
+        # )
 
     def register_blueprint(self, blueprint):
         '''
@@ -150,7 +151,7 @@ class Luya:
                         response.status = e.status_code
                 else:
                     response = response_html(
-                        '<h3>{}<h3>'.format(e),status=e.status_code
+                        '<h3>{}<h3>'.format(e), status=e.status_code
                     )
 
             except Exception as err:
