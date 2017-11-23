@@ -11,6 +11,9 @@ from luya.router import Router
 from luya.exception import LuyAException
 
 
+HTTP_METHODS = ('GET', 'POST', 'PUT', 'HEAD', 'OPTIONS', 'PATCH', 'DELETE')
+
+
 class Luya:
     def __init__(self, name=None):
         '''init the LuyA instance'''
@@ -99,9 +102,17 @@ class Luya:
 
         return response
 
-    def add_url(self, method_view, url):
-        
-        pass
+    def add_route(self, handler_or_class, url):
+
+        is_class = hasattr(handler_or_class, 'view_class')
+        methods = []
+        if is_class:
+            for method in HTTP_METHODS:
+                handler = getattr(handler_or_class, method.lower(), None)
+                if handler:
+                    methods.append(method)
+
+        self.route(url, methods=methods)(handler_or_class)
 
     async def request_handler(self, request, write_callback, stream_callback):
         '''

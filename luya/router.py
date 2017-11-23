@@ -94,16 +94,15 @@ class Router():
             :parma request: the request of one connection
         '''
         route = self.mapping_static.get(request.url, None)
-        out_put = {}
+        
+        kwarg = {}
         # if static route is not found
-
         if route is None:
-            route, out_put = self._get(request)
+            route, kwarg = self._get(request)
 
-        return route['func'], out_put
+        return route['func'], kwarg
 
     def _get(self, request):
-        
         '''
             this function is for parsing a dynamic url.
             notice that using dynamic url is very slow.

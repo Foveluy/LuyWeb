@@ -6,6 +6,7 @@ from luya import Luya
 from luya import response
 from luya import blueprint
 from luya.exception import NOT_FOUND
+from luya.view import MethodView
 
 
 PRINT = 1
@@ -41,6 +42,14 @@ async def helloWorld(request):
             </div>'''.format('http'))
 
 
+class fuck(MethodView):
+    def __init__(self):
+        pass
+    def get(self,request):
+        return response.html('<h1>class view test</h1>')
+
+
+app.add_route(fuck.to_view(), '/123')
 # @app.exception(NOT_FOUND)
 # async def helloWorld(request, exception):
 #     return response.text('page not found')
