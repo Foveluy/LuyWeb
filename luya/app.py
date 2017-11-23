@@ -12,7 +12,7 @@ from luya.exception import LuyAException
 
 
 class Luya:
-    def __init__(self):
+    def __init__(self, name=None):
         '''init the LuyA instance'''
 
         self.loop = None
@@ -98,6 +98,10 @@ class Luya:
             self.router.set_url(url, func, methods)
 
         return response
+
+    def add_url(self, method_view, url):
+        
+        pass
 
     async def request_handler(self, request, write_callback, stream_callback):
         '''
