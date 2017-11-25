@@ -106,7 +106,7 @@ class HTTPResponse():
         timeout_header = b''
         if keep_alive and keep_alive_timeout is not None:
             timeout_header = b'Keep-Alive: %d\r\n' % keep_alive_timeout
-        self.header['Content-Length'] = len(self.body)
+        self.header['Content-Length'] = len(self.body.encode())
         self.header['Content-Type'] = self.content_type
 
         header = self.parse_header()

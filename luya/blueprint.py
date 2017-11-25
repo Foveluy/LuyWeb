@@ -16,4 +16,4 @@ class Blueprint():
         for k, v in self.associate.items():
             handler = v[0]
             methods = v[1]
-            app.router.set_url(k, handler, methods)
+            app.router.set_url(k, handler, methods=methods)
