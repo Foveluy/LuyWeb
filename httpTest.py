@@ -36,6 +36,10 @@ headers = {
 
 
 async def fetch(url):
+    '''
+    这个函数是使用了aiphttp来异步获取数据
+    parma url:获取数据的地址
+    '''
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as res:
             Html = await res.text(encoding='utf-8')
@@ -43,31 +47,57 @@ async def fetch(url):
 
 
 class SearchFood():
-    def __init__(self, name):
+    def __init__(self, name, gram=100):
         self.search_name = name
         self.real_name = ''
         self.spec_url = ''
         self.cal = ''
         self.food_specs = {}
+        self.gram = gram
+
+    @property
+    def specs(self):
+        '''
+        计算食物的重量所对应的参数
+        '''
+        if self.gram != 100:
+            cal = float(self.cal)
+            carb = float(self.food_specs['碳水化合物'])
+            fat = float(self.food_specs['蛋白质'])
+            pro = float(self.food_specs['脂肪'])
+
+            self.food_specs['cal'] = cal * self.gram / 100
+            self.food_specs['碳水化合物'] = carb * self.gram / 100
+            self.food_specs['蛋白质'] = pro * self.gram / 100
+            self.food_specs['脂肪'] = fat * self.gram / 100
+        
+        return self.food_specs
 
     async def search(self):
-        html = etree.HTML(await fetch(
-            'http://www.boohee.com/food/search?keyword=' + self.search_name))
-        result_name = html.xpath('//div/h4/a')
+        url_search = 'http://www.boohee.com/food/search?keyword={}'
+        url_detail = 'http://www.boohee.com{}'
+        xpath_title = '//div/h4/a'
+
+        html = etree.HTML(await fetch(url_search.format(self.search_name)))
+        result_name = html.xpath(xpath_title)
         self.real_name = result_name[0].text
         self.food_specs['real_name'] = result_name[0].text
 
-        url = 'http://www.boohee.com' + str(result_name[0].attrib['href'])
+        url = url_detail.format(str(result_name[0].attrib['href']))
         await self._search_specs(url)
 
     async def _search_specs(self, url):
+        xpath_cal = '//span[@id="food-calory"]/span'
+        xpath_specs = '//dd/span'
+
         html = etree.HTML(await fetch(url))
-        cal = html.xpath('//span[@id="food-calory"]/span')
+        cal = html.xpath(xpath_cal)
         assert len(cal) == 1
+
         self.cal = cal[0].text
         self.food_specs['cal'] = cal[0].text
 
-        result = html.xpath('//dd/span')
+        result = html.xpath(xpath_specs)
         count = 0
         for index, item in enumerate(result):
             if '碳水化合物' in str(item.text):
@@ -83,12 +113,12 @@ class SearchFood():
                 break
 
 
-@app.route('/<foodname>')
-async def helloWorld(request, foodname=None):
-    food = SearchFood(foodname)
+@app.route('/<foodname>/<gram:number>')
+async def helloWorld(request, foodname=None, gram=100):
+    food = SearchFood(foodname, gram=gram)
     await food.search()
 
-    food_specs = food.food_specs
+    food_specs = food.specs
 
     rsp_html = '''
             <div>
@@ -100,20 +130,6 @@ async def helloWorld(request, foodname=None):
             </div>'''.format(food_specs['real_name'], food_specs['cal'],
                              food_specs['碳水化合物'], food_specs['脂肪'], food_specs['蛋白质'])
     return response.html(rsp_html)
-
-
-class fuck(MethodView):
-    def __init__(self):
-        pass
-
-    def get(self, request):
-        return response.html('<h1>class view test</h1>')
-
-
-app.add_route(fuck.to_view(), '/123')
-# @app.exception(NOT_FOUND)
-# async def helloWorld(request, exception):
-#     return response.text('page not found')
 
 
 if __name__ == '__main__':

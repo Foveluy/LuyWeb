@@ -65,6 +65,10 @@ class LuyProtocol(asyncio.Protocol):
             self.url += url
 
     def on_header(self, name, value):
+        '''
+        Content-Length cannot be too long,
+        protect the server
+        '''
         if value is not None:
             if name == b'Content-Length' and int(value) > 1500:
                 self.write_error()
@@ -99,6 +103,8 @@ class LuyProtocol(asyncio.Protocol):
 '{'fuck':'shit'}'
 
 ''')
+        self.transport.close()
+
     #-------------------------------------
     #            write response
     #-------------------------------------
@@ -170,13 +176,16 @@ def serve(app, host=None, port=None, sock=None, workers=1):
 
     # run the the server
     luya_httpServer = loop.run_until_complete(coroutine)
-    loop.run_forever()
-
-    # wait for all connection drain and then close
-    luya_httpServer.close()
-    loop.run_until_complete(luya_httpServer.wait_closed())
-
-    loop.close()
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt as e:
+        print('server closing, wait for all connection drain and then close')
+        # wait for all connection drain and then close
+        luya_httpServer.close()
+        loop.run_until_complete(luya_httpServer.wait_closed())
+    finally:
+        loop.close()
+        print('server closed', ', [pid:{}]'.format(os.getpid()))
 
 
 def multiple_serve(app, server_args):
@@ -197,19 +206,23 @@ def multiple_serve(app, server_args):
         app
     )
 
-    for i in range(0, server_args['workers']):
-        process = Process(target=serves, kwargs=server_args)
-        process.daemon = True
-        process.start()
-        processes.append(process)
-        _print_workers(host, port, '[pid:{}]'.format(process.pid))
+    try:
+        for i in range(0, server_args['workers']):
+            process = Process(target=serves, kwargs=server_args)
+            process.daemon = True
+            process.start()
+            processes.append(process)
+            _print_workers(host, port, '[pid:{}]'.format(process.pid))
 
-    # wait for every process complete
-    for process in processes:
-        process.join()
-
-    for process in processes:
-        process.terminate()
+        # wait for every process complete
+        for process in processes:
+            process.join()
+    except KeyboardInterrupt as e:
+        for process in processes:
+            print('process pid:[{}] is terminated', process.pid)
+            process.terminate()
+    finally:
+        sock.close()
 
 
 def _print_logo():

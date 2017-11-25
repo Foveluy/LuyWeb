@@ -44,7 +44,6 @@ def start_process():
     log('Start process %s...' % ' '.join(command))
     process = subprocess.Popen(
         command, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
-    print('启动了多个进程')
 
 
 def restart_process():
