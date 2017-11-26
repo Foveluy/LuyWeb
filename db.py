@@ -38,3 +38,5 @@ loop.run_until_complete(asyncio.wait(tasks, loop=loop))
 
 
 loop.close()
+
+#文档：https://aiomysql.readthedocs.io/en/latest/sa.html
