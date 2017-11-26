@@ -1,5 +1,6 @@
 import asyncio
 from httptools import HttpRequestParser, HttpParserError
+from luya.response import html
 import functools
 import uvloop
 import logging
@@ -98,11 +99,8 @@ class LuyProtocol(asyncio.Protocol):
     #      error handling
     #---------------------------
     def write_error(self):
-        self.transport.write(b'''HTTP/1.1 200 OK
-
-'{'fuck':'shit'}'
-
-''')
+        response = html('bad connecton',status=400)
+        self.write_response(response)
         self.transport.close()
 
     #-------------------------------------
