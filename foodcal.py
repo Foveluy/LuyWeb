@@ -131,10 +131,6 @@ async def helloWorld(request, foodname=None, gram=100):
                              food_specs['碳水化合物'], food_specs['脂肪'], food_specs['蛋白质'])
     return response.html(rsp_html)
 
-@app.route('/')
-async def post(request):
-    return response.html('shit')
-
 
 if __name__ == '__main__':
     app.register_blueprint(bp)
