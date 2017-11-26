@@ -1,3 +1,4 @@
+import ujson as json
 
 
 class request():
@@ -9,3 +10,13 @@ class request():
         self.method = method
 
         self.body = []
+
+    @property
+    def json(self):
+        '''
+            convert the request body to a json dict
+        '''
+        body = ''
+        for chunk in self.body:
+            body += chunk.decode()
+        return json.loads(body)

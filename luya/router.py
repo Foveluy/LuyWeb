@@ -110,8 +110,7 @@ class Router():
 
             :parma request: the request of one connection
         '''
-
-        # todo 没找到的情况
+        
         route = self.mapping_dynamic.get(url_hasKey(request.url), None)
         if route is None:
             raise LuyAException('Page Not Fount 404', 404)
