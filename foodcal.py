@@ -70,7 +70,7 @@ class SearchFood():
             self.food_specs['碳水化合物'] = carb * self.gram / 100
             self.food_specs['蛋白质'] = pro * self.gram / 100
             self.food_specs['脂肪'] = fat * self.gram / 100
-        
+
         return self.food_specs
 
     async def search(self):
@@ -131,6 +131,15 @@ async def helloWorld(request, foodname=None, gram=100):
                              food_specs['碳水化合物'], food_specs['脂肪'], food_specs['蛋白质'])
     return response.html(rsp_html)
 
+
+@app.route('/123')
+async def helloWorld(request, foodname=None, gram=100):
+    return response.html('''
+            <div>
+                <h1>
+                    hello, {}
+                </h1>
+            </div>'''.format('asd'))
 
 if __name__ == '__main__':
     app.register_blueprint(bp)

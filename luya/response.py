@@ -1,4 +1,4 @@
-
+from luya.strtime import gmtime
 try:
     from ujson import dumps as json_dumps
 except:
@@ -108,6 +108,7 @@ class HTTPResponse():
             timeout_header = b'Keep-Alive: %d\r\n' % keep_alive_timeout
         self.header['Content-Length'] = len(self.body.encode())
         self.header['Content-Type'] = self.content_type
+        self.header['Date'] = gmtime()
 
         header = self.parse_header()
 
@@ -119,7 +120,7 @@ class HTTPResponse():
                 b'Connection: %b\r\n'
                 b'%b'
                 b'%b\r\n'
-                b'%b\n\n') % (
+                b'%b') % (
                     version, self.status, statusText,
                     b'keep-alive'if keep_alive else b'close',
                     timeout_header,
