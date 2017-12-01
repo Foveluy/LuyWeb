@@ -22,12 +22,13 @@ from socket import (
 
 
 class LuyProtocol(asyncio.Protocol):
-    def __init__(self, app, loop=None, keep_alive=True):
+    def __init__(self, app, loop=None, keep_alive=True, request_max_size=None):
         self.parser = None
         self.url = None
         self._request_handler_task = None
+        self.request_max_size = request_max_size
+        self._total_request_size = 0
         self.loop = loop
-
         self.header = {}
         self.app = app
         self.keep_alive = keep_alive
@@ -47,6 +48,15 @@ class LuyProtocol(asyncio.Protocol):
     #               parsing
     #-------------------------------------
     def data_received(self, data):
+        '''
+        reveiving data from network.
+        it is a streaming.
+        has to check the data size for pretecting memory limits.
+        '''
+        self._total_request_size += len(data)
+        if self._total_request_size > self.request_max_size:
+            self.write_error()#todo:payload too large,have to implement a method represent PAYLOAD TOO LARGE
+
         try:
             self.parser.feed_data(data)
         except HttpParserError as e:
@@ -99,7 +109,7 @@ class LuyProtocol(asyncio.Protocol):
     #      error handling
     #---------------------------
     def write_error(self):
-        response = html('bad connecton',status=400)
+        response = html('bad connecton', status=400)
         self.write_response(response)
         self.transport.close()
 

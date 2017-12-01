@@ -108,7 +108,7 @@ class HTTPResponse():
             timeout_header = b'Keep-Alive: %d\r\n' % keep_alive_timeout
         self.header['Content-Length'] = len(self.body.encode())
         self.header['Content-Type'] = self.content_type
-        self.header['Date'] = gmtime()
+        self.header['Date'] = gmtime()#it looks very tricky that it will slow down the server
 
         header = self.parse_header()
 
