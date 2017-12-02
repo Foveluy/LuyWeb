@@ -133,7 +133,7 @@ async def helloWorld(request, foodname=None, gram=100):
 
 
 @app.route('/123')
-async def helloWorld(request, foodname=None, gram=100):
+async def helloWorld(request):
     return response.html('''
             <div>
                 <h1>

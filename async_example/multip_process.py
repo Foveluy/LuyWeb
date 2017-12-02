@@ -2,7 +2,6 @@ import socket
 import time
 from multiprocessing import Process
 
-
 def sync_way():
     sock = socket.socket()
     sock.connect(('www.baidu.com', 80))  # 阻塞
@@ -10,17 +9,15 @@ def sync_way():
     sock.send(req.encode('ascii'))
     rsp = b''
     chunk = sock.recv(4096)
-
     while chunk:
         rsp += chunk
         chunk = sock.recv(4096)  # 我还是阻塞
     return rsp
 
-
 if __name__ == '__main__':
     t1 = time.time()
     processes = []
-    for i in range(0, 100):
+    for i in range(0, 10):
         process = Process(target=sync_way)
         process.daemon = True
         process.start()

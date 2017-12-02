@@ -2,11 +2,8 @@ import socket
 import sys
 import time
 from selectors import DefaultSelector, EVENT_READ, EVENT_WRITE
-
 sel = DefaultSelector()
-
-times = 100
-
+times = 10
 
 def read(conn, mask):
     data = conn.recv(4096)  # Should be ready
@@ -23,7 +20,6 @@ def write(conn, mask):
     conn.send(req)  # Hope it won't block
     sel.register(conn, EVENT_READ, read)
 
-
 def fetch():
     sock = socket.socket()
     sock.setblocking(False)
@@ -31,9 +27,7 @@ def fetch():
         sock.connect(('www.baidu.com', 80))  # 阻塞
     except BlockingIOError as e:
         pass
-
     sel.register(sock, EVENT_WRITE, write)
-
 
 def sync_way():
     while times:
@@ -42,7 +36,6 @@ def sync_way():
             callback = key.data  # accept
             callback(key.fileobj, mask)
 
-
 if __name__ == '__main__':
     t1 = time.time()
     for i in range(times):
@@ -50,4 +43,4 @@ if __name__ == '__main__':
     sync_way()
     t2 = time.time()
     print('耗时:', t2 - t1)
-    #耗时: 0.9249680042266846
+    #耗时: 0.6686691284179688

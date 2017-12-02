@@ -2,7 +2,6 @@ import socket
 from concurrent import futures
 import time
 
-
 def sync_way():
     sock = socket.socket()
 
@@ -20,9 +19,9 @@ def sync_way():
 if __name__ == '__main__':
     t1 = time.time()
     with futures.ThreadPoolExecutor(10) as worker:
-        for i in range(100):
+        for i in range(10):
             worker.submit(sync_way)
 
     t2 = time.time()
     print('耗时:', t2 - t1)
-    #耗时: 0.605571985244751
+    #耗时: 0.7956159114837646

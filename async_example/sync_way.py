@@ -5,8 +5,8 @@ import time
 def sync_way():
     sock = socket.socket()
 
-    sock.connect(('blog.csdn.net', 80))  # 阻塞
-    req = 'GET / HTTP/1.0\r\n Host:blog.csdn.net\r\n\r\n'
+    sock.connect(('www.baidu.com', 80))  # 阻塞
+    req = 'GET / HTTP/1.0\r\n Host:www.baidu.com\r\n\r\n'
     sock.send(req.encode('ascii'))
 
     rsp = b''
