@@ -6,7 +6,7 @@ import logging
 
 from luya.server import LuyProtocol, serve, multiple_serve, _print_logo
 from luya.response import html as response_html
-from luya.response import HTTPResponse
+from luya.response import HTTPResponse,HTTPStreamingResponse
 from luya.router import Router
 from luya.exception import LuyAException
 
@@ -25,6 +25,7 @@ class Luya:
         self.request_middleware = []
         self.response_middleware = []
         self.exception_handler = {}
+        self.has_stream = False
 
     def run(self, host='127.0.0.1', port=8000, workers=1):
 
@@ -32,7 +33,8 @@ class Luya:
         server_args = {
             'host': host,
             'port': port,
-            'workers': workers
+            'workers': workers,
+            'has_stream': self.has_stream
         }
 
         if workers == 1:
@@ -90,15 +92,22 @@ class Luya:
         return decorator
 
         # decorator
-    def route(self, url, methods=None):
+    def route(self, url, methods=None, stream=False):
         '''
         if user decorate their function with this method,
         it will fire when a method is being decorated
+
+        :parma url: url for route
+        :parma methods: HTTP methods
+        :parma stream: streaming
         '''
+        if stream:
+            self.has_stream = stream
+
         def response(func):
             # todo to using dict directly is not good for reading
             # has to encapsulate into a class
-            self.router.set_url(url, func, methods)
+            self.router.set_url(url, func, methods, stream)
 
         return response
 
@@ -201,7 +210,10 @@ class Luya:
 
         # todo stream call_back
         try:
-            write_callback(response)
+            if isinstance(response,HTTPStreamingResponse):
+                stream_callback(response)
+            else:
+                write_callback(response)
         except Exception as e:
             print('write_callback fail', e)
 

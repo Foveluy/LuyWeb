@@ -22,16 +22,19 @@ from socket import (
 
 
 class LuyProtocol(asyncio.Protocol):
-    def __init__(self, app, loop=None, keep_alive=True, request_max_size=None):
+    def __init__(self, app, loop=None, keep_alive=True, request_max_size=None, has_stream=False):
         self.parser = None
         self.url = None
         self._request_handler_task = None
+        self._request_stream_task = None
         self.request_max_size = request_max_size
         self._total_request_size = 0
         self.loop = loop
         self.header = {}
         self.app = app
         self.keep_alive = keep_alive
+        self.has_stream = has_stream
+        self.stream_handler = None
 
     def connection_made(self, transport):
         self.transport = transport
@@ -53,9 +56,11 @@ class LuyProtocol(asyncio.Protocol):
         it is a streaming.
         has to check the data size for pretecting memory limits.
         '''
-        self._total_request_size += len(data)
-        if self._total_request_size > self.request_max_size:
-            self.write_error()#todo:payload too large,have to implement a method represent PAYLOAD TOO LARGE
+        if self.request_max_size:
+            self._total_request_size += len(data)
+            if self._total_request_size > self.request_max_size:
+                # todo:payload too large,have to implement a method represent PAYLOAD TOO LARGE
+                self.write_error()
 
         try:
             self.parser.feed_data(data)
@@ -94,16 +99,41 @@ class LuyProtocol(asyncio.Protocol):
             method=self.parser.get_method().decode()
         )
 
+        # here is where we deal with "Expect: 100-Continue"
+        # when user upload some big file or big things
+        # their client would send a header with 'Expect: 100-Continue'
+        # to if check the server can be accepted.
+        if self.has_stream:
+            self.stream_handler, kw = self.app.router.get_mapped_handle(
+                self.request)
+            if self.stream_handler and kw['stream']:
+                # here is a coroutine queue
+                # when await get()
+                self.request.stream = asyncio.Queue()
+                self.execute_request_handler()
+
     def on_body(self, body):
+        if self.has_stream and self.stream_handler:
+            self.loop.create_task(self.request.stream.put(body))
+            return
+
         self.request.body.append(body)
 
     def on_message_complete(self):
-        # print('on_message_complete')
+
+        # None is the signal for task to stop
+        if self.has_stream and self.stream_handler:
+            self.loop.create_task(self.request.stream.put(None))
+            return
+
+        self.execute_request_handler()
+
+    def execute_request_handler(self):
         self._request_handler_task = self.loop.create_task(
             self.app.request_handler(
                 self.request,
                 self.write_response,
-                None))
+                self.stream_callback))
 
     #---------------------------
     #      error handling
@@ -139,6 +169,30 @@ class LuyProtocol(asyncio.Protocol):
             print('Exception????', e)
             self.transport.close()
 
+    async def stream_callback(self, response):
+        '''
+        
+        '''
+        try:
+            keep_alive = self.keep_alive
+            response.transport = self.transport
+            await response.stream_output(self.request.version, keep_alive)
+        except AttributeError as e:
+            print('AttributeError????', e)
+            self.transport.close()
+        except RuntimeError as e:
+            print('RuntimeError????', e)
+            self.transport.close()
+        except Exception as e:
+            print('Exception????', e)
+            self.transport.close()
+        finally:
+            if keep_alive:
+                self.refresh()
+            else:
+                self.transport.close()
+        pass
+
     def refresh(self):
         '''
         refresh the server state
@@ -146,9 +200,11 @@ class LuyProtocol(asyncio.Protocol):
         '''
         self.url = None
         self.header = {}
+        self._request_handler_task = None
+        self.stream_handler = None
 
 
-def serve(app, host=None, port=None, sock=None, workers=1):
+def serve(app, host=None, port=None, sock=None, workers=1, has_stream=False):
     '''
     start a server with host & port
 
@@ -164,7 +220,8 @@ def serve(app, host=None, port=None, sock=None, workers=1):
     LuyaServer = functools.partial(
         LuyProtocol,
         app=app,
-        loop=loop
+        loop=loop,
+        has_stream=has_stream
     )
 
     try:
@@ -211,7 +268,8 @@ def multiple_serve(app, server_args):
 
     serves = functools.partial(
         serve,
-        app
+        app,
+        has_stream=server_args['has_stream']
     )
 
     try:

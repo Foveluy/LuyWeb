@@ -8,7 +8,7 @@ class request():
         self.header = header
         self.version = version
         self.method = method
-
+        self.stream = None
         self.body = []
 
     @property

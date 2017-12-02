@@ -72,7 +72,22 @@ ALL_STATUS_CODES = {
 }
 
 
-class HTTPResponse():
+class BaseResponse():
+    def parse_header(self):
+           # header should be a dict
+        parsed_header = b''
+        for key, value in self.header.items():
+            try:
+                parsed_header += (b'%b:%b\r\n'
+                                  % (key.encode(), value.encode()))
+            # sometimes,key & value may not to be a string
+            except AttributeError as e:
+                parsed_header += (b'%b:%b\r\n'
+                                  % (str(key).encode(), str(value).encode()))
+        return parsed_header
+
+
+class HTTPResponse(BaseResponse):
     __slots__ = ('body', 'status', 'content_type', 'header', '_cookies')
 
     def __init__(self, status=200, body=None,
@@ -85,19 +100,6 @@ class HTTPResponse():
         self.content_type = content_type
         self.header = header or {}
 
-    def parse_header(self):
-        # header should be a dict
-        parsed_header = b''
-        for key, value in self.header.items():
-            try:
-                parsed_header += (b'%b:%b\r\n'
-                                  % (key.encode(), value.encode()))
-            # sometimes,key & value may not to be a string
-            except AttributeError as e:
-                parsed_header += (b'%b:%b\r\n'
-                                  % (str(key).encode(), str(value).encode()))
-        return parsed_header
-
     def drain(self, version=b'1.1', keep_alive=False, keep_alive_timeout=None):
         '''
         flush a response to whatever you wanted
@@ -108,7 +110,8 @@ class HTTPResponse():
             timeout_header = b'Keep-Alive: %d\r\n' % keep_alive_timeout
         self.header['Content-Length'] = len(self.body.encode())
         self.header['Content-Type'] = self.content_type
-        self.header['Date'] = gmtime()#it looks very tricky that it will slow down the server
+        # it looks very tricky that it will slow down the server
+        # self.header['Date'] = gmtime()
 
         header = self.parse_header()
 
@@ -126,6 +129,85 @@ class HTTPResponse():
                     timeout_header,
                     header,
                     self.body.encode())
+
+
+class HTTPStreamingResponse(BaseResponse):
+    def __init__(self, streaming_fn, status=200, header=None,
+                 content_type='text/plain'):
+        self.content_type = content_type
+        self.streaming_fn = streaming_fn
+        self.status = status
+        self.header = header or {}
+        self._cookies = None
+
+    def compute_header(self, version=b'1.1', keep_alive=False, keep_alive_timeout=None):
+
+        timeout_header = b''
+        if keep_alive and keep_alive_timeout is not None:
+            timeout_header = b'Keep-Alive: %d\r\n' % keep_alive_timeout
+
+        self.header['Transfer-Encoding'] = 'chunked'
+        self.header.pop('Content-Length', None)
+        self.header['Content-Type'] = self.header.get(
+            'Content-Type', self.content_type)
+
+        headers = self.parse_header()
+        statusText = COMMON_STATUS_CODES[self.status]
+        if statusText is None:
+            statusText = ALL_STATUS_CODES.get(self.status, b'UNKNOWN RESPONSE')
+
+        return (b'HTTP/%b %d %b\r\n'
+                b'%b'
+                b'%b\r\n') % (version, self.status, statusText,
+                              timeout_header,
+                              headers)
+
+    def write(self, chunked):
+        '''
+            it will call transport.write() function.
+            This method does not block; it buffers the data and arranges for it to be sent out asynchronously.
+
+            transport.write() : https://docs.python.org/3/library/asyncio-protocol.html
+        '''
+
+        if type(chunked) != bytes:
+            chunked = chunked.encode()
+
+        # dynamicly adding a transport from server
+        self.transport.write(
+            b"%x\r\n%b\r\n" % (len(chunked), chunked))
+
+    async def stream_output(self, version=b"1.1", keep_alive=False, keep_alive_timeout=None):
+        '''
+            a coroutine function,awating stream_fn until it gets a None
+        '''
+        headers = self.compute_header(
+            version, keep_alive=keep_alive,
+            keep_alive_timeout=keep_alive_timeout)
+
+        # dynamicly adding a transport from server
+        self.transport.write(headers)
+        await self.streaming_fn(self)
+
+
+def stream(
+        streaming_fn, status=200, header=None,
+        content_type="text/plain; charset=utf-8"):
+    '''
+    this method will return a HTTPStreamingResponse class 
+    for stream response
+
+    return stream(sample_streaming_fn, content_type='text/csv')
+
+    :parma streaming_fn: coroutine function
+    '''
+
+    return HTTPStreamingResponse(
+        streaming_fn,
+        header=header,
+        content_type=content_type,
+        status=status
+    )
 
 
 def json(body, status=200, header=None, content_type="application/json", **kwargs):

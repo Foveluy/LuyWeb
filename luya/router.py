@@ -27,7 +27,7 @@ class Router():
         self.mapping_partial = {}
         self.mapping_dynamic = {}
 
-    def set_url(self, url, func, methods=None):
+    def set_url(self, url, func, methods=None, stream=None):
         method_ary = []
         method_ary.append(('func', func))
 
@@ -70,6 +70,7 @@ class Router():
         else:
             method_ary.append(('GET', True))
 
+        method_ary.append(('stream', stream))
         # check url if static or dynamic
         if len(parameters) > 0:
             method_ary.append(('arg', parameters))
@@ -94,7 +95,7 @@ class Router():
             :parma request: the request of one connection
         '''
         route = self.mapping_static.get(request.url, None)
-        
+
         kwarg = {}
         # if static route is not found
         if route is None:
@@ -110,7 +111,7 @@ class Router():
 
             :parma request: the request of one connection
         '''
-        
+
         route = self.mapping_dynamic.get(url_hasKey(request.url), None)
         if route is None:
             raise LuyAException('Page Not Fount 404', 404)
