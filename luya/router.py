@@ -94,7 +94,7 @@ class Router():
             get a handler from url
             :parma request: the request of one connection
         '''
-        route = self.mapping_static.get(request.url, None)
+        route = self.mapping_static.get(request.path, None)
 
         kwarg = {}
         # if static route is not found
@@ -112,11 +112,11 @@ class Router():
             :parma request: the request of one connection
         '''
 
-        route = self.mapping_dynamic.get(url_hasKey(request.url), None)
+        route = self.mapping_dynamic.get(url_hasKey(request.path), None)
         if route is None:
             raise LuyAException('Page Not Fount 404', 404)
 
-        args = request.url.split('/')
+        args = request.path.split('/')
 
         for _route in route:
             parameters = _route.get('arg')

@@ -93,7 +93,7 @@ class LuyProtocol(asyncio.Protocol):
 
     def on_headers_complete(self):
         self.request = request_class(
-            url=self.url.decode(),
+            url=self.url,
             header=self.header,
             version=self.parser.get_http_version(),
             method=self.parser.get_method().decode()

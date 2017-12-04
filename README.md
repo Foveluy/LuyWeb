@@ -18,8 +18,10 @@ todolist2
 - [ ]蓝图的单元测试
 - [ ]错误处理的单元测试 
 - [ ]cookie模块
-- [ ]url?name=xxx ,解析模块 
+- [x]url?name=xxx ,解析模块 ,文档说明
 - [ ]文件下载
+- [ ]流式返回文档说明
+
 
 
 things

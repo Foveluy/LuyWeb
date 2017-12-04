@@ -5,6 +5,7 @@ from luya import response
 from luya import blueprint
 from luya.exception import NOT_FOUND
 from luya.view import MethodView
+import urlparse
 
 from lxml import etree
 
@@ -57,7 +58,9 @@ class SearchFood():
         return self.food_specs
 
     async def search(self):
-
+        '''
+        搜索引擎内的食物，并且转化成为食物的各项参数
+        '''
 
         url_search = 'http://www.boohee.com/food/search?keyword={}'
         url_detail = 'http://www.boohee.com{}'
@@ -72,6 +75,7 @@ class SearchFood():
         await self._search_specs(url)
 
     async def _search_from_database(self):
+        pass
         
 
     async def _search_specs(self, url):
@@ -108,6 +112,7 @@ async def helloWorld(request, foodname=None, gram=100):
 
     food_specs = food.specs
 
+    print(request.args('a'))
     rsp_html = '''
             <div>
                <p>名字:{}</p>
