@@ -2,18 +2,21 @@ import ujson as json
 import httptools
 from httptools import parse_url
 import re
-import urlparse
+from urllib.parse import parse_qs, urlunparse
+
 
 class request():
 
-    def __init__(self, url=None, header=None, version=None, method=None):
-        self.url = url
+    def __init__(self, url_bytes=None, header=None, version=None, method=None):
+        self.url = url_bytes
         self.header = header
         self.version = version
         self.method = method
         self.stream = None
         self.body = []
+        self.parsed_args = None
         self.HttpURL_class = None
+
         self.parse_URL()
 
     @property
@@ -32,12 +35,13 @@ class request():
     def port(self):
         return self.HttpURL_class.port
 
-    def args(self, name, code='utf-8'):
-        regx = re.compile(r"(^|&)" + name + "=([^&]*)(&|$)")
-        res = regx.match(self.HttpURL_class.query.decode(code))
-        print(self.HttpURL_class.query)
-        print(res)
-        return res
+    @property
+    def args(self):
+        if self.parsed_args is None:
+            if self.HttpURL_class.query:
+                self.parsed_args = parse_qs(self.HttpURL_class.query.decode())
+        print(self.parsed_args)
+        return self.parsed_args
 
     @property
     def fragment(self):

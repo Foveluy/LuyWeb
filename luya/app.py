@@ -6,7 +6,7 @@ import logging
 
 from luya.server import LuyProtocol, serve, multiple_serve, _print_logo
 from luya.response import html as response_html
-from luya.response import HTTPResponse,HTTPStreamingResponse
+from luya.response import HTTPResponse, HTTPStreamingResponse
 from luya.router import Router
 from luya.exception import LuyAException
 
@@ -27,14 +27,15 @@ class Luya:
         self.exception_handler = {}
         self.has_stream = False
 
-    def run(self, host='127.0.0.1', port=8000, workers=1):
+    def run(self, host='127.0.0.1', port=8000, workers=1, debug=True):
 
         _print_logo()
         server_args = {
             'host': host,
             'port': port,
             'workers': workers,
-            'has_stream': self.has_stream
+            'has_stream': self.has_stream,
+            'debug': debug
         }
 
         if workers == 1:
@@ -210,7 +211,7 @@ class Luya:
 
         # todo stream call_back
         try:
-            if isinstance(response,HTTPStreamingResponse):
+            if isinstance(response, HTTPStreamingResponse):
                 stream_callback(response)
             else:
                 write_callback(response)

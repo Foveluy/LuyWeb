@@ -22,7 +22,7 @@ from socket import (
 
 
 class LuyProtocol(asyncio.Protocol):
-    def __init__(self, app, loop=None, keep_alive=True, request_max_size=None, has_stream=False):
+    def __init__(self, app, loop=None, keep_alive=True, request_max_size=None, has_stream=False, debug=True):
         self.parser = None
         self.url = None
         self._request_handler_task = None
@@ -93,7 +93,7 @@ class LuyProtocol(asyncio.Protocol):
 
     def on_headers_complete(self):
         self.request = request_class(
-            url=self.url,
+            url_bytes=self.url,
             header=self.header,
             version=self.parser.get_http_version(),
             method=self.parser.get_method().decode()
@@ -171,7 +171,7 @@ class LuyProtocol(asyncio.Protocol):
 
     async def stream_callback(self, response):
         '''
-        
+
         '''
         try:
             keep_alive = self.keep_alive
@@ -204,7 +204,7 @@ class LuyProtocol(asyncio.Protocol):
         self.stream_handler = None
 
 
-def serve(app, host=None, port=None, sock=None, workers=1, has_stream=False):
+def serve(app, host=None, port=None, sock=None, workers=1, has_stream=False, debug=True):
     '''
     start a server with host & port
 
@@ -221,7 +221,8 @@ def serve(app, host=None, port=None, sock=None, workers=1, has_stream=False):
         LuyProtocol,
         app=app,
         loop=loop,
-        has_stream=has_stream
+        has_stream=has_stream,
+        debug=debug
     )
 
     try:
@@ -269,7 +270,7 @@ def multiple_serve(app, server_args):
     serves = functools.partial(
         serve,
         app,
-        has_stream=server_args['has_stream']
+        **server_args
     )
 
     try:

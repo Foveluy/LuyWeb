@@ -5,7 +5,6 @@ from luya import response
 from luya import blueprint
 from luya.exception import NOT_FOUND
 from luya.view import MethodView
-import urlparse
 
 from lxml import etree
 
@@ -76,7 +75,6 @@ class SearchFood():
 
     async def _search_from_database(self):
         pass
-        
 
     async def _search_specs(self, url):
         xpath_cal = '//span[@id="food-calory"]/span'
@@ -112,7 +110,7 @@ async def helloWorld(request, foodname=None, gram=100):
 
     food_specs = food.specs
 
-    print(request.args('a'))
+    print(request.args['123'])
     rsp_html = '''
             <div>
                <p>名字:{}</p>
