@@ -9,24 +9,7 @@ from luya.view import MethodView
 from lxml import etree
 
 
-PRINT = 1
-
-
-app = Luya()
-
-bp = blueprint.Blueprint('zhengfang', prefix_url='/bp')
-
-
-@bp.route('/<tag:number>')
-async def helloWorld(request, tag=None):
-
-    return response.html('''
-            <div>
-                <h1>
-                    hello, {}
-                </h1>
-            </div>'''.format(tag))
-
+food_bp = blueprint.Blueprint('zhengfang', prefix_url='/food')
 
 headers = {
     "User-Agent": "Mozilla/5.0 (X11; CrOS i686 2268.111.0)\
@@ -66,14 +49,16 @@ class SearchFood():
             fat = float(self.food_specs['蛋白质'])
             pro = float(self.food_specs['脂肪'])
 
-            self.food_specs['cal'] = cal * self.gram / 100
-            self.food_specs['碳水化合物'] = carb * self.gram / 100
-            self.food_specs['蛋白质'] = pro * self.gram / 100
-            self.food_specs['脂肪'] = fat * self.gram / 100
+            self.food_specs['cal'] = '%.1f' % (cal * self.gram / 100)
+            self.food_specs['碳水化合物'] = '%.1f' % (carb * self.gram / 100)
+            self.food_specs['蛋白质'] = '%.1f' % (pro * self.gram / 100)
+            self.food_specs['脂肪'] = '%.1f' % (fat * self.gram / 100)
 
         return self.food_specs
 
     async def search(self):
+
+
         url_search = 'http://www.boohee.com/food/search?keyword={}'
         url_detail = 'http://www.boohee.com{}'
         xpath_title = '//div/h4/a'
@@ -85,6 +70,9 @@ class SearchFood():
 
         url = url_detail.format(str(result_name[0].attrib['href']))
         await self._search_specs(url)
+
+    async def _search_from_database(self):
+        
 
     async def _search_specs(self, url):
         xpath_cal = '//span[@id="food-calory"]/span'
@@ -113,7 +101,7 @@ class SearchFood():
                 break
 
 
-@app.route('/<foodname>/<gram:number>')
+@food_bp.route('/<foodname>/<gram:number>')
 async def helloWorld(request, foodname=None, gram=100):
     food = SearchFood(foodname, gram=gram)
     await food.search()
@@ -130,17 +118,3 @@ async def helloWorld(request, foodname=None, gram=100):
             </div>'''.format(food_specs['real_name'], food_specs['cal'],
                              food_specs['碳水化合物'], food_specs['脂肪'], food_specs['蛋白质'])
     return response.html(rsp_html)
-
-
-@app.route('/123')
-async def helloWorld(request):
-    return response.html('''
-            <div>
-                <h1>
-                    hello, {}
-                </h1>
-            </div>'''.format('asd'))
-
-if __name__ == '__main__':
-    app.register_blueprint(bp)
-    app.run()
