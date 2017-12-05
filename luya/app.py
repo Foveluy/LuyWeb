@@ -26,6 +26,8 @@ class Luya:
         self.request_middleware = []
         self.response_middleware = []
         self.exception_handler = {}
+        self.before_server_start = []
+        self.after_server_start = []
         self.has_stream = False
 
     def run(self, host='127.0.0.1', port=8000, workers=1, debug=True):
@@ -98,6 +100,18 @@ class Luya:
             self.exception_handler[status_code] = func
 
         return decorator
+
+    def listener(self, when):
+        '''
+        adding life cycle to the app
+        '''
+        def wrapper(func):
+            if when == 'before_start':
+                self.before_server_start.append(func)
+            if when == 'after_start':
+                self.after_server_start.append(func)
+
+        return wrapper
 
         # decorator
     def route(self, url, methods=None, stream=False):

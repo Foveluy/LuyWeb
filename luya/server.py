@@ -6,6 +6,7 @@ import uvloop
 import logging
 import sys
 import os
+from inspect import isawaitable
 
 from traceback import format_exc
 from multiprocessing import Process
@@ -242,6 +243,13 @@ def serve(app, host=None, port=None, sock=None, workers=1, has_stream=False, deb
 
     # run the the server
     luya_httpServer = loop.run_until_complete(coroutine)
+
+    try:
+        run_listener(app.after_server_start, loop)
+    except Exception as e:
+        return
+        logging.error('unable to run the server,{}'.format(format_exc()))
+
     try:
         loop.run_forever()
     except KeyboardInterrupt as e:
@@ -290,6 +298,16 @@ def multiple_serve(app, server_args):
             process.terminate()
     finally:
         sock.close()
+
+
+def run_listener(listeners, loop):
+    '''
+        trigger the listener
+    '''
+    for listener in listeners:
+        func = listener()
+        if isawaitable(func):
+            loop.run_until_complete(func)
 
 
 def stop():

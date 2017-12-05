@@ -19,13 +19,11 @@ class LuyA_Test():
     def __init__(self, app):
         self.app = app
 
-    def _run_test_server(self, url='/', headers=None):
-        self.app.run(port=PORT)
-
-    async def get(self, url='/', method='get', headers=None):
-        async with aiohttp.ClientSession() as session:
+    async def _request(self, url='/', method='get', headers=None):
+        conn = aiohttp.TCPConnector(verify_ssl=False)
+        async with aiohttp.ClientSession(connector=conn) as session:
             async with getattr(
-                    session, method.lower())('127.0.0.1' + url, headers=headers) as response:
+                    session, method.lower())('http://127.0.0.1:{}'.format(PORT) + url, headers=headers) as response:
                 try:
                     response.text = await response.text()
                 except UnicodeDecodeError as e:
@@ -39,5 +37,20 @@ class LuyA_Test():
                     response.json = None
 
                 response.body = await response.read()
-                self.app.stop()
                 return response
+
+    def _run_test_server(self, url='/', method='get', headers=None):
+
+        rsp = [None]
+
+        async def request():
+            rsp[0] = await self._request(url=url, method=method, headers=headers)
+
+            self.app.stop()
+        self.app.listener('after_start')(request)
+
+        self.app.run(port=PORT)
+        return rsp[0]
+
+    def get(self, url='/', method='get', headers=None):
+        return self._run_test_server(url=url, method=method, headers=headers)
