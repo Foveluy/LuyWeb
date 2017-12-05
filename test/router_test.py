@@ -4,7 +4,6 @@ from luya.exception import LuyAException
 import unittest
 
 
-
 class TestRouter(unittest.TestCase):
 
     def test_oneArg(self):
@@ -56,7 +55,7 @@ class TestRouter(unittest.TestCase):
     def test_int_url(self):
 
         request = request_class(url='/123')
-        
+
         router_instance = Router()
         router_instance.set_url('/<tag:int>', self.noop)
 
@@ -65,10 +64,9 @@ class TestRouter(unittest.TestCase):
         self.assertEqual(handler, self.noop)
 
         request2 = request_class(url='/12hh3-22')
-        
+
         with self.assertRaises(LuyAException):
             handler, kw = router_instance.get_mapped_handle(request2)
-
 
     def noop(self):
         pass
