@@ -52,5 +52,5 @@ class LuyA_Test():
         self.app.run(port=PORT)
         return rsp[0]
 
-    def get(self, url='/', method='get', headers=None):
-        return self._run_test_server(url=url, method=method, headers=headers)
+    def get(self, url='/', headers=None):
+        return self._run_test_server(url=url, method='get', headers=headers)
