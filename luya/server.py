@@ -235,7 +235,8 @@ def serve(app, host=None, port=None, sock=None, workers=1, has_stream=False, deb
             reuse_address=True,
             reuse_port=True)
 
-        _print_workers(host, port, '[pid:{}]'.format(os.getpid()))
+        if debug:
+            _print_workers(host, port, '[pid:{}]'.format(os.getpid()))
 
     except Exception as e:
         logging.error('unable to run the server,{}'.format(format_exc()))

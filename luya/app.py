@@ -32,7 +32,8 @@ class Luya:
 
     def run(self, host='127.0.0.1', port=8000, workers=1, debug=True):
 
-        _print_logo()
+        if debug:
+            _print_logo()
         server_args = {
             'host': host,
             'port': port,

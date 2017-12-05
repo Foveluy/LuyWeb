@@ -49,7 +49,7 @@ class LuyA_Test():
             self.app.stop()
         self.app.listener('after_start')(request)
 
-        self.app.run(port=PORT)
+        self.app.run(port=PORT, debug=False)
         return rsp[0]
 
     def get(self, url='/', headers=None):
