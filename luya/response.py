@@ -114,10 +114,9 @@ class HTTPResponse(BaseResponse):
         # self.header['Date'] = gmtime()
 
         header = self.parse_header()
-
-        statusText = COMMON_STATUS_CODES[self.status]
+        statusText = COMMON_STATUS_CODES.get(self.status, None)
         if statusText is None:
-            statusText = ALL_STATUS_CODES[self.status] or b'UNKNOWN RESPONSE'
+            statusText = ALL_STATUS_CODES.get(self.status, b'UNKNOWN RESPONSE')
 
         return (b'HTTP/%b %d %b\r\n'
                 b'Connection: %b\r\n'

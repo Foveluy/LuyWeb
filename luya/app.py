@@ -50,6 +50,7 @@ class Luya:
     def stop(self):
         stop()
 
+    @property
     def test_client(self):
         return LuyA_Test(self)
 
@@ -203,15 +204,16 @@ class Luya:
                     if response.status == 200:
                         response.status = e.status_code
                 else:
+
                     response = response_html(
                         '<h3>{}<h3>'.format(e), status=e.status_code
                     )
-
             except Exception as err:
                 response = response_html(
                     '<h1>{}</h1>{}'.format(err, format_exc()), status=500)
 
         except Exception as e:
+
             response = response_html(
                 '''<h3>unable to perform the request middleware and router function</h3>
                     <p>{}</p>

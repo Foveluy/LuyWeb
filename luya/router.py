@@ -95,11 +95,12 @@ class Router():
             :parma request: the request of one connection
         '''
         route = self.mapping_static.get(request.path, None)
-
         kwarg = {}
         # if static route is not found
         if route is None:
             route, kwarg = self._get(request)
+
+        self.check_allow_method(request, route)
 
         return route['func'], kwarg
 
@@ -157,6 +158,11 @@ class Router():
                 return _route, dict(output)
 
         raise LuyAException('Page Not Fount 404', 404)
+
+    def check_allow_method(self, request, route):
+        if route.get(request.method, False) is False:
+            raise LuyAException('{} is not allow {}'.format(
+                request.path, request.method), status_code=405)
 
     def check_matching(self, regex, args, idx):
         '''
