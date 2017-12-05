@@ -4,11 +4,12 @@ from inspect import isawaitable, stack, getmodulename
 from traceback import format_exc
 import logging
 
-from luya.server import LuyProtocol, serve, multiple_serve, _print_logo
+from luya.server import LuyProtocol, serve, multiple_serve, _print_logo, stop
 from luya.response import html as response_html
 from luya.response import HTTPResponse, HTTPStreamingResponse
 from luya.router import Router
 from luya.exception import LuyAException
+from luya.testing import LuyA_Test
 
 
 HTTP_METHODS = ('GET', 'POST', 'PUT', 'HEAD', 'OPTIONS', 'PATCH', 'DELETE')
@@ -42,6 +43,12 @@ class Luya:
             serve(self, **server_args)
         else:
             multiple_serve(self, server_args)
+
+    def stop(self):
+        stop()
+
+    def test_client(self):
+        return LuyA_Test(self)
 
     def register_blueprint(self, blueprint):
         '''

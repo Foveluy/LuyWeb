@@ -292,6 +292,10 @@ def multiple_serve(app, server_args):
         sock.close()
 
 
+def stop():
+    asyncio.get_event_loop().close()
+
+
 def _print_logo():
     '''unuseful method dont call it!!!!!!!!!!'''
     print('''
