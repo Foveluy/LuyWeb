@@ -98,13 +98,14 @@ class HTTPResponse(BaseResponse):
         self.status = status
         self.body = body
         self.content_type = content_type
+        
         self.header = header or {}
 
     def drain(self, version=b'1.1', keep_alive=False, keep_alive_timeout=None):
         '''
         flush a response to whatever you wanted
         '''
-
+        
         timeout_header = b''
         if keep_alive and keep_alive_timeout is not None:
             timeout_header = b'Keep-Alive: %d\r\n' % keep_alive_timeout
@@ -114,6 +115,7 @@ class HTTPResponse(BaseResponse):
         # self.header['Date'] = gmtime()
 
         header = self.parse_header()
+
         statusText = COMMON_STATUS_CODES.get(self.status, None)
         if statusText is None:
             statusText = ALL_STATUS_CODES.get(self.status, b'UNKNOWN RESPONSE')
@@ -209,7 +211,7 @@ def stream(
     )
 
 
-def json(body, status=200, header=None, content_type="application/json", **kwargs):
+def json(body, status=200, headers=None, content_type="application/json", **kwargs):
     '''
     ujson is way more faster than json module, 
     highly recommended the user to install it
@@ -226,18 +228,19 @@ def json(body, status=200, header=None, content_type="application/json", **kwarg
     return HTTPResponse(body=json_dumps(body, **kwargs),
                         content_type=content_type,
                         status=status,
-                        header=header)
+                        header=headers)
 
 
-def text(body, status=200, header=None, content_type="text/plain:charset=utf-8"):
+def text(body, status=200, headers=None, content_type="text/plain:charset=utf-8"):
+    
     return HTTPResponse(body=body,
                         content_type=content_type,
                         status=status,
-                        header=header)
+                        header=headers)
 
 
-def html(body, status=200, header=None):
+def html(body, status=200, headers=None):
     return HTTPResponse(body=body,
                         content_type="text/html; charset=utf-8",
                         status=status,
-                        header=header)
+                        header=headers)

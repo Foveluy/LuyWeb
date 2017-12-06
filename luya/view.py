@@ -1,3 +1,6 @@
+from luya.exception import LuyAException
+
+
 class MethodView():
 
     def dispatch(self, request, *arg, **kwarg):
@@ -5,6 +8,9 @@ class MethodView():
 
         if handler:
             return handler(request, *arg, **kwarg)
+        else:
+            raise LuyAException('{} is not allow {}'.format(
+                request.path, request.method), status_code=405)
 
     @classmethod
     def to_view(cls, *cls_arg, **cls_kwarg):

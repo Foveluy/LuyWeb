@@ -35,6 +35,7 @@ class LuyA_Test():
                         UnicodeDecodeError,
                         aiohttp.ClientResponseError):
                     response.json = None
+                # print(response.headers)
 
                 response.body = await response.read()
                 return response

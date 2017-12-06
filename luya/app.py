@@ -135,17 +135,18 @@ class Luya:
 
         return response
 
-    def add_route(self, handler_or_class, url):
+    def add_route(self, handler_or_class, url, methods=['GET']):
 
         is_class = hasattr(handler_or_class, 'view_class')
-        methods = []
+        http_methods = methods
         if is_class:
-            for method in HTTP_METHODS:
-                handler = getattr(handler_or_class, method.lower(), None)
+            for http_method in HTTP_METHODS:
+                handler = getattr(handler_or_class.view_class,
+                                  http_method.lower(), None)
                 if handler:
-                    methods.append(method)
+                    http_methods.append(http_method)
 
-        self.route(url, methods=methods)(handler_or_class)
+        self.route(url, methods=http_methods)(handler_or_class)
 
     async def request_handler(self, request, write_callback, stream_callback):
         '''

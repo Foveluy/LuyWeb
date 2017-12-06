@@ -77,15 +77,34 @@ class Router():
         # check url if static or dynamic
         if len(parameters) > 0:
             method_ary.append(('arg', parameters))
-            self.map_dynamic(url_hasKey(real_url), dict(method_ary))
+            self.map_dynamic(url_hasKey(real_url), dict(method_ary), url)
         else:
             self.map_static(url, dict(method_ary))
 
-    def map_dynamic(self, key, method_ary):
+    def map_dynamic(self, key, method_ary, url):
         if key not in self.mapping_dynamic:
             self.mapping_dynamic[key] = []
 
+        for itm in self.mapping_dynamic[key]:
+            arg_ary = itm['arg']
+            pre = self._connect_all_args_to_string(arg_ary)
+            after = self._connect_all_args_to_string(method_ary['arg'])
+            if pre == after:
+                raise ValueError(
+                    '{} is exist'.format(url))
+
         self.mapping_dynamic[key].append(method_ary)
+
+    def _connect_all_args_to_string(self, arg_ary):
+        '''
+            convert a dict to pure string
+        '''
+        string = ''
+        for itm in arg_ary:
+            for key, value in itm.items():
+                string += str(key)
+                string += str(value)
+        return string
 
     def map_static(self, url, method_ary):
         if url in self.mapping_static:
