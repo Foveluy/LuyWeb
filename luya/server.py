@@ -89,7 +89,6 @@ class LuyProtocol(asyncio.Protocol):
         if value is not None:
             if name == b'Content-Length' and int(value) > 1500:
                 self.write_error()
-
             self.header[name.decode().casefold()] = value.decode()
 
     def on_headers_complete(self):

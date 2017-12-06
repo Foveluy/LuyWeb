@@ -20,6 +20,11 @@ class NOT_FOUND(LuyAException):
     pass
 
 
+@add_status_code(500)
+class ServerError(LuyAException):
+    pass
+
+
 def abort(status_code, message=None):
     exception = LuyAException(None, status_code=status_code)
     raise exception

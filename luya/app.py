@@ -184,18 +184,21 @@ class Luya:
 
         try:
             handler, kw = self.router.get_mapped_handle(request)
-
+            
             # users may define a non-awaitable function
             response = handler(request, **kw)
+            
             if isawaitable(response):
                 response = await response
+                print(response)
             else:
                 logging.warning('url %s for %s is not isawaitable' %
                                 (request.url, handler))
         except LuyAException as e:
+            
             try:
                 handler = self.exception_handler.get(e.status_code, None)
-
+                
                 if handler is not None:
                     response = handler(request, exception=e)
                     if isawaitable(response):

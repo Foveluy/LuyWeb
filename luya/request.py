@@ -44,11 +44,15 @@ class request():
         return self.parsed_args
 
     @property
+    def ip(self):
+        return self.header['host'].split(':')[0]
+
+    @property
     def fragment(self):
         return self.HttpURL_class.fragment
 
     @property
-    def fragment(self):
+    def userinfo(self):
         return self.HttpURL_class.userinfo
 
     def parse_URL(self):
