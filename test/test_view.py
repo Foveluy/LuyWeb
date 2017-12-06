@@ -77,3 +77,100 @@ def test_argument_methods():
     response = app.test_client.get('/test123')
 
     assert response.text == 'I am get method with test123'
+
+
+def test_with_bp():
+    app = Luya('test_with_bp')
+    bp = Blueprint('test_text')
+
+    class DummyView(MethodView):
+
+        def get(self, request):
+            assert request.stream is None
+            return text('I am get method')
+
+    bp.add_route(DummyView.to_view(), '/')
+
+    app.register_blueprint(bp)
+    response = app.test_client.get('/')
+
+    assert app.has_stream is False
+    assert response.text == 'I am get method'
+
+
+def test_with_bp_with_url_prefix():
+    app = Luya('test_with_bp_with_url_prefix')
+    bp = Blueprint('test_text', prefix_url='/test1')
+
+    class DummyView(MethodView):
+
+        def get(self, request):
+            return text('I am get method')
+
+    bp.add_route(DummyView.to_view(), '/')
+
+    app.register_blueprint(bp)
+    response = app.test_client.get('/test1/')
+
+    assert response.text == 'I am get method'
+
+
+# def test_with_middleware():
+#     app = Luya('test_with_middleware')
+
+#     class DummyView(MethodView):
+
+#         def get(self, request):
+#             return text('I am get method')
+
+#     app.add_route(DummyView.to_view(), '/')
+
+#     results = []
+
+#     @app.middleware
+#     async def handler(request):
+#         results.append(request)
+
+#     request, response = app.test_client.get('/')
+
+#     assert response.text == 'I am get method'
+#     assert type(results[0]) is Request
+
+def test_with_custom_class_methods():
+    app = Luya('test_with_custom_class_methods')
+
+    class DummyView(MethodView):
+        global_var = 0
+
+        def _iternal_method(self):
+            self.global_var += 10
+
+        def get(self, request):
+            self._iternal_method()
+            return text('I am get method and global var is {}'.format(self.global_var))
+
+    app.add_route(DummyView.to_view(), '/')
+    response = app.test_client.get('/')
+    assert response.text == 'I am get method and global var is 10'
+
+
+# def test_with_decorator():
+#     app = Luya('test_with_decorator')
+
+#     results = []
+
+#     def stupid_decorator(view):
+#         def decorator(*args, **kwargs):
+#             results.append(1)
+#             return view(*args, **kwargs)
+#         return decorator
+
+#     class DummyView(MethodView):
+#         decorators = [stupid_decorator]
+
+#         def get(self, request):
+#             return text('I am get method')
+
+#     app.add_route(DummyView.to_view(), '/')
+#     response = app.test_client.get('/')
+#     assert response.text == 'I am get method'
