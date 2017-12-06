@@ -50,6 +50,9 @@ class Router():
                 splited = pattern.split(':')
                 pattern = splited[0]
                 Type = splited[1]
+                if pattern == '' or Type == '':
+                    raise ValueError(
+                        '<{}:{}> is an invalid parameter syntax '.format(PATTERN, Type))
                 parameters.append((pattern, Type, idx))
             else:
                 parameters.append({'pattern': pattern, 'index': idx})
