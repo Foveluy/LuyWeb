@@ -45,7 +45,7 @@ class LuyA_Test():
         rsp = [None]
 
         async def request():
-            rsp[0] = await self._request(url=url, method=method, headers=headers, data=None)
+            rsp[0] = await self._request(url=url, method=method, headers=headers, data=data)
             self.app.stop()
 
         self.app.listener('after_start')(request)
@@ -58,4 +58,5 @@ class LuyA_Test():
         return self._run_test_server(url=url, method='get', headers=headers)
 
     def post(self, url='/', headers=None, data='msg'):
+        
         return self._run_test_server(url=url, method='post', headers=headers, data=data)

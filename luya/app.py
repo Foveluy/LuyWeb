@@ -8,7 +8,7 @@ from luya.server import LuyProtocol, serve, multiple_serve, _print_logo, stop
 from luya.response import html as response_html
 from luya.response import HTTPResponse, HTTPStreamingResponse
 from luya.router import Router
-from luya.exception import LuyAException
+from luya.exception import LuyAException, ServerError
 from luya.testing import LuyA_Test
 
 
@@ -181,7 +181,7 @@ class Luya:
         #----------------
         # handling request
         #----------------
-
+        
         try:
             handler, kw = self.router.get_mapped_handle(request)
             
@@ -190,15 +190,18 @@ class Luya:
             
             if isawaitable(response):
                 response = await response
-                print(response)
             else:
                 logging.warning('url %s for %s is not isawaitable' %
                                 (request.url, handler))
-        except LuyAException as e:
             
+            if isinstance(response, HTTPResponse) is False:
+                raise ServerError('Internal Server Error.')
+
+        except LuyAException as e:
+
             try:
                 handler = self.exception_handler.get(e.status_code, None)
-                
+
                 if handler is not None:
                     response = handler(request, exception=e)
                     if isawaitable(response):

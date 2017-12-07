@@ -2,10 +2,11 @@ import sys
 import pytest
 sys.path.append("..")
 import asyncio
+from ujson import loads as json_loads
 
 from luya import Luya
 from luya.blueprint import Blueprint
-from luya.response import text
+from luya.response import text, json
 from luya.exception import ServerError
 
 
@@ -86,3 +87,72 @@ def test_invalid_response():
     response = app.test_client.get('/')
     assert response.status == 500
     assert response.text == "Internal Server Error."
+
+
+def test_json():
+    app = Luya('test_json')
+
+    @app.route('/')
+    async def handler(request):
+        return json({"test": True})
+
+    response = app.test_client.get('/')
+
+    results = json_loads(response.text)
+
+    assert results.get('test') == True
+
+
+def test_empty_json():
+    app = Luya('test_json')
+
+    @app.route('/')
+    async def handler(request):
+        assert request.json == None
+        return json(request.json)
+
+    response = app.test_client.get('/')
+    assert response.status == 200
+    assert response.text == 'null'
+
+
+def test_invalid_json():
+    app = Luya('test_json')
+
+    @app.route('/', methods=['POST'])
+    async def handler(request):
+        return json(request.json)
+
+    data = "I am not json"
+    response = app.test_client.post('/', data=data)
+
+    assert response.status == 400
+
+
+def test_query_string():
+    app = Luya('test_query_string')
+    args = [None]
+
+    @app.route('/')
+    async def handler(request):
+        args[0] = request.args
+        return text('OK')
+
+    response = app.test_client.get('/?test1=1&test2=2&test3=false')
+    arg = args[0]
+    assert arg['test1'][0] == '1'
+    assert arg['test2'][0] == '2'
+    assert arg['test3'][0] == 'false'
+
+
+def test_match_info():
+    app = Luya('test_match_info')
+    arg = [None]
+
+    @app.route('/api/v1/user/<user_id>/')
+    async def handler(request, user_id):
+        arg[0] = user_id
+        return text('OK')
+
+    response = app.test_client.get('/api/v1/user/sanic_user/')
+    assert arg[0] == 'sanic_user'

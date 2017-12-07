@@ -98,14 +98,14 @@ class HTTPResponse(BaseResponse):
         self.status = status
         self.body = body
         self.content_type = content_type
-        
+
         self.header = header or {}
 
     def drain(self, version=b'1.1', keep_alive=False, keep_alive_timeout=None):
         '''
         flush a response to whatever you wanted
         '''
-        
+
         timeout_header = b''
         if keep_alive and keep_alive_timeout is not None:
             timeout_header = b'Keep-Alive: %d\r\n' % keep_alive_timeout
@@ -224,7 +224,6 @@ def json(body, status=200, headers=None, content_type="application/json", **kwar
 
     :parma **kwargs: user can use a key-value form : json(key=value,key2=value2)
     '''
-
     return HTTPResponse(body=json_dumps(body, **kwargs),
                         content_type=content_type,
                         status=status,
@@ -232,7 +231,7 @@ def json(body, status=200, headers=None, content_type="application/json", **kwar
 
 
 def text(body, status=200, headers=None, content_type="text/plain:charset=utf-8"):
-    
+
     return HTTPResponse(body=body,
                         content_type=content_type,
                         status=status,

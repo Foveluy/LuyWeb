@@ -3,6 +3,8 @@ import httptools
 from httptools import parse_url
 import re
 from urllib.parse import parse_qs, urlunparse
+from luya.exception import LuyAException
+import logging
 
 
 class request():
@@ -66,4 +68,11 @@ class request():
         body = ''
         for chunk in self.body:
             body += chunk.decode()
-        return json.loads(body)
+        if body == '':
+            return None
+
+        try:
+            return json.loads(body)
+        except Exception as e:
+            logging.error('json parse err ,{}'.format(e))
+            raise LuyAException('Bad Request', status_code=400)
