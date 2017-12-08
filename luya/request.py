@@ -7,7 +7,7 @@ from luya.exception import LuyAException
 import logging
 
 
-class request():
+class request(dict):
 
     def __init__(self, url_bytes=None, header=None, version=None, method=None):
         self.url = url_bytes

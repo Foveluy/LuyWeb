@@ -162,8 +162,10 @@ class Luya:
         #----------------
         # handling request middleware
         #----------------
+
         try:
             for middleware in self.request_middleware:
+
                 response = middleware(request)
 
                 if isinstance(response, HTTPResponse):
@@ -181,24 +183,24 @@ class Luya:
         #----------------
         # handling request
         #----------------
-        
+
         try:
             handler, kw = self.router.get_mapped_handle(request)
             
             # users may define a non-awaitable function
             response = handler(request, **kw)
-            
+
             if isawaitable(response):
                 response = await response
             else:
                 logging.warning('url %s for %s is not isawaitable' %
                                 (request.url, handler))
             
-            if isinstance(response, HTTPResponse) is False:
+            if isinstance(response, (HTTPResponse,HTTPStreamingResponse)) is False:
                 raise ServerError('Internal Server Error.')
 
         except LuyAException as e:
-
+            
             try:
                 handler = self.exception_handler.get(e.status_code, None)
 
@@ -243,7 +245,7 @@ class Luya:
         # todo stream call_back
         try:
             if isinstance(response, HTTPStreamingResponse):
-                stream_callback(response)
+                await stream_callback(response)
             else:
                 write_callback(response)
         except Exception as e:

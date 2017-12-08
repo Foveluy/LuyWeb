@@ -3,6 +3,7 @@ import pytest
 sys.path.append("..")
 import asyncio
 from ujson import loads as json_loads
+from ujson import dumps as json_dumps
 
 from luya import Luya
 from luya.blueprint import Blueprint
@@ -156,3 +157,40 @@ def test_match_info():
 
     response = app.test_client.get('/api/v1/user/sanic_user/')
     assert arg[0] == 'sanic_user'
+
+
+def test_post_json():
+    app = Luya('test_post_json')
+    arg = [None]
+
+    @app.route('/', methods=['POST'])
+    async def handler(request):
+        arg[0] = request
+        return text('OK')
+
+    payload = {'test': 'OK'}
+    headers = {'content-type': 'application/json'}
+
+    response = app.test_client.post(
+        '/', data=json_dumps(payload), headers=headers)
+
+    assert arg[0].json.get('test') == 'OK'
+    assert response.text == 'OK'
+
+
+# def test_post_form_urlencoded():
+#     app = Luya('test_post_form_urlencoded')
+#     arg = [None]
+
+#     @app.route('/', methods=['POST'])
+#     async def handler(request):
+#         arg[0] = request
+#         return text('OK')
+
+#     payload = 'test=OK'
+#     headers = {'content-type': 'application/x-www-form-urlencoded'}
+
+#     response = app.test_client.post(
+#         '/', data=payload, headers=headers)
+
+#     assert arg[0].form.get('test') == 'OK'

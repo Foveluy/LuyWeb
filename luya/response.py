@@ -105,6 +105,8 @@ class HTTPResponse(BaseResponse):
         '''
         flush a response to whatever you wanted
         '''
+        if isinstance(self.body, (int, float)):
+            self.body = str(self.body)
 
         timeout_header = b''
         if keep_alive and keep_alive_timeout is not None:
@@ -147,19 +149,20 @@ class HTTPStreamingResponse(BaseResponse):
         if keep_alive and keep_alive_timeout is not None:
             timeout_header = b'Keep-Alive: %d\r\n' % keep_alive_timeout
 
-        self.header['Transfer-Encoding'] = 'chunked'
+        self.header['Transfer-Encoding'] = ' chunked'
         self.header.pop('Content-Length', None)
         self.header['Content-Type'] = self.header.get(
             'Content-Type', self.content_type)
 
         headers = self.parse_header()
-        statusText = COMMON_STATUS_CODES[self.status]
+        statusText = COMMON_STATUS_CODES.get(self.status,None)
         if statusText is None:
             statusText = ALL_STATUS_CODES.get(self.status, b'UNKNOWN RESPONSE')
 
+
         return (b'HTTP/%b %d %b\r\n'
                 b'%b'
-                b'%b\r\n') % (version, self.status, statusText,
+                b'%b\r\n') % (version if isinstance(version,bytes) else version.encode(), self.status, statusText,
                               timeout_header,
                               headers)
 
@@ -170,10 +173,9 @@ class HTTPStreamingResponse(BaseResponse):
 
             transport.write() : https://docs.python.org/3/library/asyncio-protocol.html
         '''
-
         if type(chunked) != bytes:
             chunked = chunked.encode()
-
+        
         # dynamicly adding a transport from server
         self.transport.write(
             b"%x\r\n%b\r\n" % (len(chunked), chunked))
@@ -182,13 +184,16 @@ class HTTPStreamingResponse(BaseResponse):
         '''
             a coroutine function,awating stream_fn until it gets a None
         '''
+        
         headers = self.compute_header(
             version, keep_alive=keep_alive,
             keep_alive_timeout=keep_alive_timeout)
-
+        
         # dynamicly adding a transport from server
         self.transport.write(headers)
+        
         await self.streaming_fn(self)
+        self.transport.write(b'0\r\n\r\n')
 
 
 def stream(

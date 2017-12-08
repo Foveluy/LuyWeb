@@ -177,6 +177,11 @@ class LuyProtocol(asyncio.Protocol):
             keep_alive = self.keep_alive
             response.transport = self.transport
             await response.stream_output(self.request.version, keep_alive)
+            if keep_alive:
+                self.refresh()
+            else:
+                self.transport.close()
+
         except AttributeError as e:
             print('AttributeError????', e)
             self.transport.close()
@@ -186,12 +191,6 @@ class LuyProtocol(asyncio.Protocol):
         except Exception as e:
             print('Exception????', e)
             self.transport.close()
-        finally:
-            if keep_alive:
-                self.refresh()
-            else:
-                self.transport.close()
-        pass
 
     def refresh(self):
         '''
@@ -245,7 +244,7 @@ def serve(app, host=None, port=None, sock=None, workers=1, has_stream=False, deb
     luya_httpServer = loop.run_until_complete(coroutine)
 
     try:
-        run_listener(app.after_server_start, loop)
+        run_listener(app.after_server_start, app, loop)
     except Exception as e:
         return
         logging.error('unable to run the server,{}'.format(format_exc()))
@@ -300,12 +299,12 @@ def multiple_serve(app, server_args):
         sock.close()
 
 
-def run_listener(listeners, loop):
+def run_listener(listeners, app, loop):
     '''
         trigger the listener
     '''
     for listener in listeners:
-        func = listener()
+        func = listener(app, loop)
         if isawaitable(func):
             loop.run_until_complete(func)
 
