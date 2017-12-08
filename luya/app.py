@@ -66,7 +66,7 @@ class Luya:
             self.blueprint_in_order.append(blueprint)
             blueprint.register(self)
 
-    def register_middleware(self, middleware, before=None):
+    def register_middleware(self, middleware, before='request'):
         if before == 'request':
             self.request_middleware.append(middleware)
         if before == 'response':
@@ -95,9 +95,11 @@ class Luya:
 
             # decorator
     def exception(self, exception):
-
+        '''
+        adding a LuyAexception class to a function.
+        it will fire when error being capture.
+        '''
         def decorator(func):
-            print('yes')
             status_code = exception.status_code
             self.exception_handler[status_code] = func
 
@@ -165,10 +167,12 @@ class Luya:
 
         try:
             for middleware in self.request_middleware:
-
                 response = middleware(request)
-
-                if isinstance(response, HTTPResponse):
+                if isawaitable(response):
+                    response = await response
+                
+                
+                if isinstance(response, (HTTPResponse,HTTPStreamingResponse)):
                     if isawaitable(response):
                         response = await response
                     write_callback(response)
@@ -186,7 +190,7 @@ class Luya:
 
         try:
             handler, kw = self.router.get_mapped_handle(request)
-            
+
             # users may define a non-awaitable function
             response = handler(request, **kw)
 
@@ -195,12 +199,12 @@ class Luya:
             else:
                 logging.warning('url %s for %s is not isawaitable' %
                                 (request.url, handler))
-            
-            if isinstance(response, (HTTPResponse,HTTPStreamingResponse)) is False:
+
+            if isinstance(response, (HTTPResponse, HTTPStreamingResponse)) is False:
                 raise ServerError('Internal Server Error.')
 
         except LuyAException as e:
-            
+
             try:
                 handler = self.exception_handler.get(e.status_code, None)
 
@@ -252,8 +256,11 @@ class Luya:
             print('write_callback fail', e)
 
     async def run_response_middleware(self, request, response):
+        
         for middleware in self.response_middleware:
             _response = middleware(request, response)
+            if isawaitable(_response):
+                _response = await _response
 
             if isinstance(_response, HTTPResponse):
                 if isawaitable(_response):
