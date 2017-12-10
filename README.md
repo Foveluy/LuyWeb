@@ -27,6 +27,10 @@ todolist2
 - [] REST 版本
 - [] test_redirect.py 重定向
 - [] abort
+- [] 流式返回的测试
+- [] test_server_events.py 用于服务器开启和关闭时的回调
+- [] test_static.py 静态文件支持
+- [] test_utf8.py 字符集
 
 
 

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import aiohttp
+import time
+import urllib
+
 from luya import Luya
 from luya import response
 from luya import blueprint
@@ -7,6 +10,7 @@ from luya.exception import NOT_FOUND
 from luya.view import MethodView
 
 from lxml import etree
+from luya_mysql import sqlInstance
 
 
 food_bp = blueprint.Blueprint('zhengfang', prefix_url='/food')
@@ -29,8 +33,10 @@ async def fetch(url):
             return Html
 
 
+
 class SearchFood():
     def __init__(self, name, gram=100):
+        # print(urllib.parse.unquote(name))
         self.search_name = name
         self.real_name = ''
         self.spec_url = ''
@@ -43,6 +49,7 @@ class SearchFood():
         '''
         计算食物的重量所对应的参数
         '''
+        
         if self.gram != 100:
             cal = float(self.cal)
             carb = float(self.food_specs['碳水化合物'])
@@ -61,6 +68,10 @@ class SearchFood():
         搜索引擎内的食物，并且转化成为食物的各项参数
         '''
 
+        has_local_spes = await self._search_from_database()
+        if has_local_spes == True:
+            return
+
         url_search = 'http://www.boohee.com/food/search?keyword={}'
         url_detail = 'http://www.boohee.com{}'
         xpath_title = '//div/h4/a'
@@ -74,7 +85,19 @@ class SearchFood():
         await self._search_specs(url)
 
     async def _search_from_database(self):
-        pass
+        conection = await sqlInstance.connection()
+
+        has_value = False
+        async for row in conection.execute(food.select().where(food.c.sname == self.search_name)):
+            print(row)
+            self.cal = row.cal
+            self.food_specs['碳水化合物'] = row.carb
+            self.food_specs['蛋白质'] = row.pro
+            self.food_specs['脂肪'] = row.fat
+            self.food_specs['real_name'] = row.fullname
+            has_value = True
+
+        return has_value
 
     async def _search_specs(self, url):
         xpath_cal = '//span[@id="food-calory"]/span'
@@ -102,6 +125,24 @@ class SearchFood():
             if count >= 3:
                 break
 
+        real_name = self.food_specs['real_name'].split('，')[0]
+        assert real_name is not None
+        conection = await sqlInstance.connection()
+        await conection.execute('ALTER TABLE food MODIFY COLUMN fullname VARCHAR(40) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;')
+        # trans = await conection.begin()
+        # await trans.commit()
+        await conection.execute(food.insert().values(
+            sname=self.search_name,
+            fullname=real_name,
+            cal=self.cal,
+            pro=self.food_specs['蛋白质'],
+            carb=self.food_specs['碳水化合物'],
+            fat=self.food_specs['脂肪'],
+            createTime=time.time()
+        ))
+        trans = await conection.begin()
+        await trans.commit()
+
 
 @food_bp.route('/<foodname>/<gram:number>')
 async def helloWorld(request, foodname=None, gram=100):
@@ -110,7 +151,6 @@ async def helloWorld(request, foodname=None, gram=100):
 
     food_specs = food.specs
 
-    print(request.args['123'])
     rsp_html = '''
             <div>
                <p>名字:{}</p>
