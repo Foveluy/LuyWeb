@@ -15,12 +15,20 @@ todolist
 todolist2
 =====
 
-- [ ]蓝图的单元测试
-- [ ]错误处理的单元测试 
-- [ ]cookie模块
-- [x]url?name=xxx ,解析模块 ,文档说明
-- [ ]文件下载
-- [ ]流式返回文档说明
+- [x] test_bad_request_response
+- [] shorthand method - get\post\patch\....
+- [] config模块
+- [] cookies 模块
+- [] test_exceptions.py 错误处理
+- [] test_exceptions_handler.py 错误处理回调
+- [] test_keep_alive_timeout.py keep_alive_timeout模块
+- [] test_logging.py 日志模块
+- [] test_multiprocessing.py 多进程模块(利用多核)
+- [] REST 版本
+- [] test_redirect.py 重定向
+- [] abort
+
+
 
 
 
