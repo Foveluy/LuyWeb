@@ -129,8 +129,6 @@ class SearchFood():
         assert real_name is not None
         conection = await sqlInstance.connection()
         await conection.execute('ALTER TABLE food MODIFY COLUMN fullname VARCHAR(40) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;')
-        # trans = await conection.begin()
-        # await trans.commit()
         await conection.execute(food.insert().values(
             sname=self.search_name,
             fullname=real_name,
