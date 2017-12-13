@@ -50,6 +50,56 @@ class Luya:
     def stop(self):
         stop()
 
+    def get(self, url, stream=False):
+
+        if stream:
+            self.has_stream = stream
+
+        def response(func):
+            # todo to using dict directly is not good for reading
+            # has to encapsulate into a class
+            self.router.set_url(url, func, methods='GET', stream=stream)
+
+    def post(self, url, stream=False):
+
+        if stream:
+            self.has_stream = stream
+
+        def response(func):
+            # todo to using dict directly is not good for reading
+            # has to encapsulate into a class
+            self.router.set_url(url, func, methods='POST', stream=stream)
+
+    def delete(self, url, stream=False):
+
+        if stream:
+            self.has_stream = stream
+
+        def response(func):
+            # todo to using dict directly is not good for reading
+            # has to encapsulate into a class
+            self.router.set_url(url, func, methods='DELETE', stream=stream)
+
+    def put(self, url, stream=False):
+
+        if stream:
+            self.has_stream = stream
+
+        def response(func):
+            # todo to using dict directly is not good for reading
+            # has to encapsulate into a class
+            self.router.set_url(url, func, methods='PUT', stream=stream)
+
+    def patch(self, url, stream=False):
+
+        if stream:
+            self.has_stream = stream
+
+        def response(func):
+            # todo to using dict directly is not good for reading
+            # has to encapsulate into a class
+            self.router.set_url(url, func, methods='PATCH', stream=stream)
+
     @property
     def test_client(self):
         return LuyA_Test(self)
@@ -123,9 +173,9 @@ class Luya:
         if user decorate their function with this method,
         it will fire when a method is being decorated
 
-        :parma url: url for route
-        :parma methods: HTTP methods
-        :parma stream: streaming
+        :param url: url for route
+        :param methods: HTTP methods
+        :param stream: streaming
         '''
         if stream:
             self.has_stream = stream
@@ -170,9 +220,8 @@ class Luya:
                 response = middleware(request)
                 if isawaitable(response):
                     response = await response
-                
-                
-                if isinstance(response, (HTTPResponse,HTTPStreamingResponse)):
+
+                if isinstance(response, (HTTPResponse, HTTPStreamingResponse)):
                     if isawaitable(response):
                         response = await response
                     write_callback(response)
@@ -256,7 +305,7 @@ class Luya:
             print('write_callback fail', e)
 
     async def run_response_middleware(self, request, response):
-        
+
         for middleware in self.response_middleware:
             _response = middleware(request, response)
             if isawaitable(_response):
