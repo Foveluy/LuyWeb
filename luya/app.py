@@ -50,6 +50,10 @@ class Luya:
     def stop(self):
         stop()
 
+    #-------------
+    # get/post/put/patch...
+    #-------------
+
     def get(self, url, stream=False):
 
         if stream:
@@ -99,6 +103,11 @@ class Luya:
             # todo to using dict directly is not good for reading
             # has to encapsulate into a class
             self.router.set_url(url, func, methods='PATCH', stream=stream)
+
+    def options():
+        pass
+    def head():
+        pass
 
     @property
     def test_client(self):

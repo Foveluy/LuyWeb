@@ -155,14 +155,13 @@ class HTTPStreamingResponse(BaseResponse):
             'Content-Type', self.content_type)
 
         headers = self.parse_header()
-        statusText = COMMON_STATUS_CODES.get(self.status,None)
+        statusText = COMMON_STATUS_CODES.get(self.status, None)
         if statusText is None:
             statusText = ALL_STATUS_CODES.get(self.status, b'UNKNOWN RESPONSE')
 
-
         return (b'HTTP/%b %d %b\r\n'
                 b'%b'
-                b'%b\r\n') % (version if isinstance(version,bytes) else version.encode(), self.status, statusText,
+                b'%b\r\n') % (version if isinstance(version, bytes) else version.encode(), self.status, statusText,
                               timeout_header,
                               headers)
 
@@ -175,7 +174,7 @@ class HTTPStreamingResponse(BaseResponse):
         '''
         if type(chunked) != bytes:
             chunked = chunked.encode()
-        
+
         # dynamicly adding a transport from server
         self.transport.write(
             b"%x\r\n%b\r\n" % (len(chunked), chunked))
@@ -184,14 +183,14 @@ class HTTPStreamingResponse(BaseResponse):
         '''
             a coroutine function,awating stream_fn until it gets a None
         '''
-        
+
         headers = self.compute_header(
             version, keep_alive=keep_alive,
             keep_alive_timeout=keep_alive_timeout)
-        
+
         # dynamicly adding a transport from server
         self.transport.write(headers)
-        
+
         await self.streaming_fn(self)
         self.transport.write(b'0\r\n\r\n')
 
